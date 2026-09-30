@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum Tool: String, CaseIterable, Identifiable, Codable {
-    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis
+    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -17,6 +17,9 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dns: "DNS Lookup"
         case .postgres: "PostgreSQL"
         case .redis: "Redis"
+        case .dockerMirror: "Docker Mirror"
+        case .dockerTransfer: "Docker Transfer"
+        case .nginx: "Nginx Formatter"
         }
     }
     var subtitle: String {
@@ -33,6 +36,9 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dns: "Explore the records behind a domain."
         case .postgres: "A home for your PostgreSQL connections."
         case .redis: "Inspect and manage your Redis data."
+        case .dockerMirror: "Pull through a mirror and restore the original image tag."
+        case .dockerTransfer: "Build image transfer commands for your private registry."
+        case .nginx: "Format and inspect Nginx configurations on your Mac."
         }
     }
     var symbol: String {
@@ -49,6 +55,9 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dns: "globe"
         case .postgres: "cylinder.split.1x2"
         case .redis: "externaldrive"
+        case .dockerMirror: "shippingbox"
+        case .dockerTransfer: "arrow.triangle.swap"
+        case .nginx: "text.alignleft"
         }
     }
     var group: String {
@@ -58,11 +67,20 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .json, .base64, .timestamp, .uuid: "Developer"
         case .port, .http, .dns: "Network"
         case .postgres, .redis: "Database"
+        case .dockerMirror, .dockerTransfer, .nginx: "DevOps"
         }
     }
     var available: Bool { ![.token, .http, .dns, .postgres, .redis].contains(self) }
     func matches(_ query: String) -> Bool {
-        query.isEmpty || "\(title) \(subtitle) \(group) \(rawValue)".localizedCaseInsensitiveContains(query)
+        query.isEmpty || "\(title) \(subtitle) \(group) \(rawValue) \(aliases)".localizedCaseInsensitiveContains(query)
+    }
+    private var aliases: String {
+        switch self {
+        case .dockerMirror: "replaceDocker 镜像代理 替换"
+        case .dockerTransfer: "pullAndPush 拉取 推送 私库"
+        case .nginx: "nginxfmt 配置 格式化"
+        default: ""
+        }
     }
 }
 

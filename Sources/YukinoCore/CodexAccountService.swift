@@ -77,7 +77,7 @@ public enum CodexAccountService {
             data.append(10)
             try input.fileHandleForWriting.write(contentsOf: data)
         }
-        try send(["id": 1, "method": "initialize", "params": ["clientInfo": ["name": "yukino_tools", "title": "Yukino Tools", "version": "0.2.0"]]])
+        try send(["id": 1, "method": "initialize", "params": ["clientInfo": ["name": "yukino_tools", "title": "Yukino Tools", "version": "0.3.0"]]])
         var buffer = Data()
         var initialized = false
         while Date() < deadline {

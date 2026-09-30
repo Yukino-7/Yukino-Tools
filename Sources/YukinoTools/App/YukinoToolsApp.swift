@@ -38,7 +38,7 @@ struct YukinoToolsApp: App {
     }
 
     private func findInCurrentTool() {
-        guard [.json, .base64, .uuid].contains(state.selected), let window = NSApp.keyWindow else {
+        guard [.json, .base64, .uuid, .nginx, .dockerMirror, .dockerTransfer].contains(state.selected), let window = NSApp.keyWindow else {
             state.paletteVisible = true
             return
         }

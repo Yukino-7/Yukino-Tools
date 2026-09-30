@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.0 — 2026-09-30
+
+- 新增 DevOps 分组：Docker Mirror、Docker Transfer、Nginx Formatter。
+- 将 replaceDocker / pullAndPush 的命令生成工作流迁入原生界面，支持可配置仓库、镜像命名空间及端口、平台、sudo、可选标签清理、分步复制与 Shell 脚本导出。
+- 新增原生 Nginx 双栏格式化、结构检查、缩进及 LF/CRLF、UTF-8/Latin-1 文件导入和另存为；保留注释、引号、转义和变量。
+- 搜索支持原工具名称与中文关键词；新增 9 项 DevOps 服务测试，合计 26 项。
+
 ## v0.2.0 — 2026-09-30
 
 首个公开版本。原生 macOS 开发工具箱，支持 macOS 14 及以上。

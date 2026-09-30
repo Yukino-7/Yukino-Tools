@@ -18,7 +18,7 @@ def read(expected, timeout=15):
         if message.get('id')==expected: return message
     return {'error':{'message':'No response before timeout'}}
 try:
-    send({'id':1,'method':'initialize','params':{'clientInfo':{'name':'yukino_tools','title':'Yukino Tools','version':'0.2.0'}}})
+    send({'id':1,'method':'initialize','params':{'clientInfo':{'name':'yukino_tools','title':'Yukino Tools','version':'0.3.0'}}})
     initialized=read(1)
     print('initialize:', 'ok' if 'result' in initialized else initialized.get('error'))
     if 'result' in initialized:

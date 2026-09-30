@@ -17,7 +17,7 @@ struct MenuBarView: View {
         Button("Refresh usage") { Task { await usage.refresh() } }.disabled(usage.scanning || usage.accountRefreshing)
         Divider()
         Button("Codex Usage") { open(.codex) }
-        ForEach([Tool.json, .timestamp, .uuid]) { tool in
+        ForEach([Tool.json, .timestamp, .uuid, .nginx, .dockerTransfer]) { tool in
             Button { open(tool) } label: { Label(tool.title, systemImage: tool.symbol) }
         }
         Divider()

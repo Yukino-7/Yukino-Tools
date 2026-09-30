@@ -55,7 +55,7 @@ struct OverviewView: View {
                     Image(systemName: "lock.shield")
                     Text("Built for your Mac. Conversions stay on your device.")
                     Spacer()
-                    Text("YUKINO / 0.2").tracking(1.2)
+                    Text("YUKINO / 0.3").tracking(1.2)
                 }.font(.system(size: 10)).foregroundStyle(.tertiary).padding(.top, 4)
             }.padding(32)
         }.contentMargins(.top, 0, for: .scrollContent).background(Color.canvas)

@@ -18,6 +18,9 @@ struct MainWindow: View {
                 case .timestamp: TimestampView()
                 case .uuid: UUIDView()
                 case .port: PortCheckView()
+                case .dockerMirror: DockerCommandsView(mirror: true).id(Tool.dockerMirror)
+                case .dockerTransfer: DockerCommandsView(mirror: false).id(Tool.dockerTransfer)
+                case .nginx: NginxFormatterView()
                 default: PlannedToolView(tool: state.selected)
                 }
             }
@@ -80,7 +83,7 @@ struct MainWindow: View {
                             }
                     }
                 }
-                ForEach(["AI", "Developer", "Network", "Database"], id: \.self) { group in
+                ForEach(["AI", "Developer", "DevOps", "Network", "Database"], id: \.self) { group in
                     let tools = Tool.allCases.filter { $0.group == group && $0.matches(search) }
                     if !tools.isEmpty {
                         Section(group) { ForEach(tools) { tool in toolRow(tool) } }
@@ -94,7 +97,7 @@ struct MainWindow: View {
             HStack {
                 SettingsLink { Label("Settings", systemImage: "gearshape") }.buttonStyle(.plain)
                 Spacer()
-                Text("v0.2").font(.system(size: 10)).foregroundStyle(.tertiary)
+                Text("v0.3").font(.system(size: 10)).foregroundStyle(.tertiary)
             }.font(.system(size: 12)).padding(20)
         }
     }
