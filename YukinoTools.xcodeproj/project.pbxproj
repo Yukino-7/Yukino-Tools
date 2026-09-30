@@ -1,0 +1,357 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+		E192C8E375D834B6F8EAE6C6 /* Sources/YukinoTools/App/MainWindow.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/App/MainWindow.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		B6117568D258264E7D15CD6D /* Sources/YukinoTools/App/MainWindow.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = E192C8E375D834B6F8EAE6C6;
+		};
+		BFEB34C5D68A60B0C8ED299C /* Sources/YukinoTools/App/YukinoToolsApp.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/App/YukinoToolsApp.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		936DC1A72FE50F7C4AEDB4FF /* Sources/YukinoTools/App/YukinoToolsApp.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = BFEB34C5D68A60B0C8ED299C;
+		};
+		4389C26B000C9B03B0498F40 /* Sources/YukinoTools/Core/CodeEditor.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Core/CodeEditor.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		ED98F895B4D740FCCE3EB114 /* Sources/YukinoTools/Core/CodeEditor.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 4389C26B000C9B03B0498F40;
+		};
+		5FD0DE71D2B09DC741725263 /* Sources/YukinoTools/Core/CodexUsageStore.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Core/CodexUsageStore.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		FEDC56BD5EC1A04C6A7F74AE /* Sources/YukinoTools/Core/CodexUsageStore.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 5FD0DE71D2B09DC741725263;
+		};
+		5CB50EAA7DB8C646496D85CD /* Sources/YukinoTools/Core/Components.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Core/Components.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		BC1A479C23BF28F4624440F3 /* Sources/YukinoTools/Core/Components.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 5CB50EAA7DB8C646496D85CD;
+		};
+		4262B0E69DDD106C1089AED9 /* Sources/YukinoTools/Core/Tool.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Core/Tool.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		55BA8946B63C5484FD7E4BAC /* Sources/YukinoTools/Core/Tool.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 4262B0E69DDD106C1089AED9;
+		};
+		E555ED62E1E12FAD55BDAFE9 /* Sources/YukinoTools/Features/Base64View.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/Base64View.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		BF0267CD08207E07D3F68A57 /* Sources/YukinoTools/Features/Base64View.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = E555ED62E1E12FAD55BDAFE9;
+		};
+		201CAF3871A9703B750276BF /* Sources/YukinoTools/Features/CodexUsageView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/CodexUsageView.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		FD6B37C8DC6F8C39A0CE90B8 /* Sources/YukinoTools/Features/CodexUsageView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 201CAF3871A9703B750276BF;
+		};
+		4D7622056D7B1CF1D1B7684E /* Sources/YukinoTools/Features/CommandPalette.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/CommandPalette.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		BAC2A646664B4C153D47290F /* Sources/YukinoTools/Features/CommandPalette.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 4D7622056D7B1CF1D1B7684E;
+		};
+		F5B472527F7DF543A1A791FC /* Sources/YukinoTools/Features/JSONFormatterView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/JSONFormatterView.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		71107969AAF4426AA7A1C8D5 /* Sources/YukinoTools/Features/JSONFormatterView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = F5B472527F7DF543A1A791FC;
+		};
+		47A5D66F8BA7D9F9D532F812 /* Sources/YukinoTools/Features/MenuBarView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/MenuBarView.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		ABD9F58CC765A31DDDC675A8 /* Sources/YukinoTools/Features/MenuBarView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 47A5D66F8BA7D9F9D532F812;
+		};
+		9532E0E3A7DBC9681B0A6DFC /* Sources/YukinoTools/Features/OverviewView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/OverviewView.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		888F5F2F4F5085C3CD7A6FF9 /* Sources/YukinoTools/Features/OverviewView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9532E0E3A7DBC9681B0A6DFC;
+		};
+		1F731BA2EAA74D51E850097D /* Sources/YukinoTools/Features/PortCheckView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/PortCheckView.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		2D170F2E63B7F060CD7249C3 /* Sources/YukinoTools/Features/PortCheckView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 1F731BA2EAA74D51E850097D;
+		};
+		E31E449516DA6B9279AC34BA /* Sources/YukinoTools/Features/SettingsView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/SettingsView.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		E61D4F64FF9C8FAF412BB799 /* Sources/YukinoTools/Features/SettingsView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = E31E449516DA6B9279AC34BA;
+		};
+		7260F73A7154CA1CA514641A /* Sources/YukinoTools/Features/TimestampView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/TimestampView.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		8F367F28005F90C005CC31C0 /* Sources/YukinoTools/Features/TimestampView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 7260F73A7154CA1CA514641A;
+		};
+		8D85946F963AE6A707627249 /* Sources/YukinoTools/Features/UUIDView.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = "Sources/YukinoTools/Features/UUIDView.swift";
+			sourceTree = SOURCE_ROOT;
+		};
+		1459C20D26368399CF903F6B /* Sources/YukinoTools/Features/UUIDView.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 8D85946F963AE6A707627249;
+		};
+		FC4A695F02A8A53A129DCB9A /* App */ = {
+			isa = PBXGroup;
+			children = (E192C8E375D834B6F8EAE6C6, BFEB34C5D68A60B0C8ED299C);
+			name = App;
+			sourceTree = "<group>";
+		};
+		68836C550EE20FAE0E06B299 /* Core */ = {
+			isa = PBXGroup;
+			children = (4389C26B000C9B03B0498F40, 5FD0DE71D2B09DC741725263, 5CB50EAA7DB8C646496D85CD, 4262B0E69DDD106C1089AED9);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		FC338F87A058158EB824B537 /* Features */ = {
+			isa = PBXGroup;
+			children = (E555ED62E1E12FAD55BDAFE9, 201CAF3871A9703B750276BF, 4D7622056D7B1CF1D1B7684E, F5B472527F7DF543A1A791FC, 47A5D66F8BA7D9F9D532F812, 9532E0E3A7DBC9681B0A6DFC, 1F731BA2EAA74D51E850097D, E31E449516DA6B9279AC34BA, 7260F73A7154CA1CA514641A, 8D85946F963AE6A707627249);
+			name = Features;
+			sourceTree = "<group>";
+		};
+		560737C72BC60145ADB91F3E /* AppIcon.icns */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = image.icns;
+			path = Resources/AppIcon.icns;
+			sourceTree = SOURCE_ROOT;
+		};
+		2CAF41D93B65EE2602897E9F /* AppIcon in Resources */ = {
+			isa = PBXBuildFile;
+			fileRef = 560737C72BC60145ADB91F3E;
+		};
+		7B594B6DB375E1BF3F23CDD6 /* Info.plist */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			path = Resources/Info.plist;
+			sourceTree = SOURCE_ROOT;
+		};
+		87DF60DE337FB58864343E39 /* Resources */ = {
+			isa = PBXGroup;
+			children = (560737C72BC60145ADB91F3E, 7B594B6DB375E1BF3F23CDD6);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		70F3EE83E242CC8EA528CAAD /* Yukino Tools.app */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = "Yukino Tools.app";
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FE0A091FDBFB3E9C31B7A1BD /* Products */ = {
+			isa = PBXGroup;
+			children = (70F3EE83E242CC8EA528CAAD);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		179F2225059AAC9EC2BB31FD /* Main group */ = {
+			isa = PBXGroup;
+			children = (FC4A695F02A8A53A129DCB9A, 68836C550EE20FAE0E06B299, FC338F87A058158EB824B537, 87DF60DE337FB58864343E39, FE0A091FDBFB3E9C31B7A1BD);
+			sourceTree = "<group>";
+		};
+		3DBF80712E98B9202B887037 /* Local Yukino core package */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+		1DB7C5E673D1F21986EDD48A /* YukinoCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3DBF80712E98B9202B887037;
+			productName = YukinoCore;
+		};
+		44E6789C6120274F7576844C /* YukinoCore in Frameworks */ = {
+			isa = PBXBuildFile;
+			productRef = 1DB7C5E673D1F21986EDD48A;
+		};
+		2EB56BE3C2D93CDAB0C52E67 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (B6117568D258264E7D15CD6D, 936DC1A72FE50F7C4AEDB4FF, ED98F895B4D740FCCE3EB114, FEDC56BD5EC1A04C6A7F74AE, BC1A479C23BF28F4624440F3, 55BA8946B63C5484FD7E4BAC, BF0267CD08207E07D3F68A57, FD6B37C8DC6F8C39A0CE90B8, BAC2A646664B4C153D47290F, 71107969AAF4426AA7A1C8D5, ABD9F58CC765A31DDDC675A8, 888F5F2F4F5085C3CD7A6FF9, 2D170F2E63B7F060CD7249C3, E61D4F64FF9C8FAF412BB799, 8F367F28005F90C005CC31C0, 1459C20D26368399CF903F6B);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AF39DD055C3EF8226FBE929D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (44E6789C6120274F7576844C);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2FE11800C10954D7D8EAD266 /* Bundle resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (2CAF41D93B65EE2602897E9F);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		40609A412964FFB79DAE9C3A /* Project Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				SDKROOT = "macosx";
+				SWIFT_VERSION = "5.0";
+				CLANG_ENABLE_MODULES = "YES";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				ENABLE_TESTABILITY = "YES";
+			};
+			name = Debug;
+		};
+		5FE44C1D4108931802BC082F /* App Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Yukino Tools";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yukino.tools";
+				EXECUTABLE_NAME = "YukinoTools";
+				INFOPLIST_FILE = "Resources/Info.plist";
+				GENERATE_INFOPLIST_FILE = "NO";
+				CODE_SIGN_STYLE = "Manual";
+				CODE_SIGN_IDENTITY = "-";
+				ENABLE_APP_SANDBOX = "NO";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				COMBINE_HIDPI_IMAGES = "YES";
+			};
+			name = Debug;
+		};
+		24B7DFA423B1C8A2130AE03E /* Project Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				SDKROOT = "macosx";
+				SWIFT_VERSION = "5.0";
+				CLANG_ENABLE_MODULES = "YES";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+			};
+			name = Release;
+		};
+		A8C4CABD5DA2B1F3DAB7CD6F /* App Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "Yukino Tools";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yukino.tools";
+				EXECUTABLE_NAME = "YukinoTools";
+				INFOPLIST_FILE = "Resources/Info.plist";
+				GENERATE_INFOPLIST_FILE = "NO";
+				CODE_SIGN_STYLE = "Manual";
+				CODE_SIGN_IDENTITY = "-";
+				ENABLE_APP_SANDBOX = "NO";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				COMBINE_HIDPI_IMAGES = "YES";
+			};
+			name = Release;
+		};
+		EA4CB304C2116E38EA8A7F98 /* Project configurations */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (40609A412964FFB79DAE9C3A, 24B7DFA423B1C8A2130AE03E);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E0EFFAA5AEEB49CADA40A266 /* App configurations */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (5FE44C1D4108931802BC082F, A8C4CABD5DA2B1F3DAB7CD6F);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2764DF64E212CDC7F2E24879 /* YukinoToolsApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E0EFFAA5AEEB49CADA40A266;
+			buildPhases = (2EB56BE3C2D93CDAB0C52E67, AF39DD055C3EF8226FBE929D, 2FE11800C10954D7D8EAD266);
+			buildRules = ();
+			dependencies = ();
+			name = YukinoToolsApp;
+			packageProductDependencies = (1DB7C5E673D1F21986EDD48A);
+			productName = "Yukino Tools";
+			productReference = 70F3EE83E242CC8EA528CAAD;
+			productType = "com.apple.product-type.application";
+		};
+		F6F4DA8D93E88A08220E03B7 /* Project */ = {
+			isa = PBXProject;
+			attributes = { LastUpgradeCheck = 1500; };
+			buildConfigurationList = EA4CB304C2116E38EA8A7F98;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = 179F2225059AAC9EC2BB31FD;
+			packageReferences = (3DBF80712E98B9202B887037);
+			productRefGroup = FE0A091FDBFB3E9C31B7A1BD;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (2764DF64E212CDC7F2E24879);
+		};
+	};
+	rootObject = F6F4DA8D93E88A08220E03B7;
+}
