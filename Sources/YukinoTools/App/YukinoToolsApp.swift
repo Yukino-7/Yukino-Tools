@@ -7,11 +7,25 @@ struct YukinoToolsApp: App {
     @StateObject private var usage = CodexUsageStore()
     @AppStorage("appearance") private var appearance = "system"
     @AppStorage("showMenuBar") private var showMenuBar = true
+    @AppStorage("menuBarUsageStyle") private var menuBarUsageStyle = MenuBarUsageStyle.doubleRing.rawValue
+    @State private var launchComplete = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var scheme: ColorScheme? { appearance == "dark" ? .dark : appearance == "light" ? .light : nil }
 
     var body: some Scene {
         Window("Yukino Tools", id: "main") {
-            MainWindow().environmentObject(state).environmentObject(usage).preferredColorScheme(scheme)
+            ZStack {
+                if launchComplete {
+                    MainWindow().transition(.opacity)
+                } else {
+                    LaunchView {
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                            launchComplete = true
+                        }
+                    }.transition(.opacity)
+                }
+            }
+                .environmentObject(state).environmentObject(usage).preferredColorScheme(scheme)
                 .frame(minWidth: 1000, minHeight: 650)
                 .background(WindowRestorer())
                 .task { usage.start() }
@@ -32,13 +46,17 @@ struct YukinoToolsApp: App {
         Settings {
             SettingsView().environmentObject(state).environmentObject(usage).preferredColorScheme(scheme)
         }
-        MenuBarExtra("Yukino Tools", systemImage: "square.stack.3d.up", isInserted: $showMenuBar) {
+        MenuBarExtra(isInserted: $showMenuBar) {
             MenuBarView().environmentObject(state).environmentObject(usage)
+        } label: {
+            MenuBarUsageLabel(style: MenuBarUsageStyle(rawValue: menuBarUsageStyle) ?? .doubleRing,
+                              limits: usage.limits, recorded: usage.limitIsRecorded)
+                .task { usage.start() }
         }
     }
 
     private func findInCurrentTool() {
-        guard [.json, .base64, .uuid, .nginx, .dockerMirror, .dockerTransfer].contains(state.selected), let window = NSApp.keyWindow else {
+        guard [.json, .base64, .uuid, .nginx, .dockerMirror, .dockerTransfer, .openrouterDaily].contains(state.selected), let window = NSApp.keyWindow else {
             state.paletteVisible = true
             return
         }

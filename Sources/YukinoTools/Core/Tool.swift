@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum Tool: String, CaseIterable, Identifiable, Codable {
-    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx
+    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -20,6 +20,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dockerMirror: "Docker Mirror"
         case .dockerTransfer: "Docker Transfer"
         case .nginx: "Nginx Formatter"
+        case .openrouterDaily: "OpenRouter 日报"
         }
     }
     var subtitle: String {
@@ -39,6 +40,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dockerMirror: "Pull through a mirror and restore the original image tag."
         case .dockerTransfer: "Build image transfer commands for your private registry."
         case .nginx: "Format and inspect Nginx configurations on your Mac."
+        case .openrouterDaily: "Free-model changes, weekly rankings and Markdown history."
         }
     }
     var symbol: String {
@@ -58,18 +60,20 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dockerMirror: "shippingbox"
         case .dockerTransfer: "arrow.triangle.swap"
         case .nginx: "text.alignleft"
+        case .openrouterDaily: "doc.richtext"
         }
     }
     var group: String {
         switch self {
         case .overview: "Workspace"
-        case .codex, .token: "AI"
+        case .codex, .token, .openrouterDaily: "AI"
         case .json, .base64, .timestamp, .uuid: "Developer"
         case .port, .http, .dns: "Network"
         case .postgres, .redis: "Database"
         case .dockerMirror, .dockerTransfer, .nginx: "DevOps"
         }
     }
+    static var availableTools: [Tool] { allCases.filter(\.available) }
     var available: Bool { ![.token, .http, .dns, .postgres, .redis].contains(self) }
     func matches(_ query: String) -> Bool {
         query.isEmpty || "\(title) \(subtitle) \(group) \(rawValue) \(aliases)".localizedCaseInsensitiveContains(query)
@@ -79,6 +83,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dockerMirror: "replaceDocker 镜像代理 替换"
         case .dockerTransfer: "pullAndPush 拉取 推送 私库"
         case .nginx: "nginxfmt 配置 格式化"
+        case .openrouterDaily: "daily report 免费模型 榜单 markdown 日报"
         default: ""
         }
     }
@@ -100,14 +105,17 @@ struct RecentTool: Codable, Identifiable {
     private let defaults = UserDefaults.standard
     init() {
         if let data = defaults.data(forKey: "favorites"), let values = try? JSONDecoder().decode([Tool].self, from: data) {
-            favorites = values
+            favorites = values.filter(\.available)
         } else { favorites = [.json, .timestamp, .uuid] }
-        if let data = defaults.data(forKey: "recentTools"), let values = try? JSONDecoder().decode([RecentTool].self, from: data) { recent = values }
+        if let data = defaults.data(forKey: "recentTools"), let values = try? JSONDecoder().decode([RecentTool].self, from: data) { recent = values.filter { $0.tool.available } }
         if defaults.object(forKey: "rememberLastTool") == nil || defaults.bool(forKey: "rememberLastTool") {
-            selected = Tool(rawValue: defaults.string(forKey: "lastTool") ?? "overview") ?? .overview
+            if let tool = Tool(rawValue: defaults.string(forKey: "lastTool") ?? "overview"), tool.available {
+                selected = tool
+            }
         }
     }
     func navigate(_ tool: Tool) {
+        guard tool.available else { return }
         selected = tool
         paletteVisible = false
         defaults.set(tool.rawValue, forKey: "lastTool")
@@ -119,6 +127,7 @@ struct RecentTool: Codable, Identifiable {
         }
     }
     func toggleFavorite(_ tool: Tool) {
+        guard tool.available else { return }
         if favorites.contains(tool) { favorites.removeAll { $0 == tool } } else { favorites.append(tool) }
         saveFavorites()
     }

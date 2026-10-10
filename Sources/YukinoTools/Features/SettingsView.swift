@@ -6,6 +6,7 @@ struct SettingsView: View {
         TabView {
             GeneralSettings().tabItem { Label("General", systemImage: "gearshape") }
             AppearanceSettings().tabItem { Label("Appearance", systemImage: "paintpalette") }
+            MenuBarSettings().tabItem { Label("菜单栏", systemImage: "menubar.rectangle") }
             CodexSettings().tabItem { Label("Codex", systemImage: "terminal") }
             NetworkSettings().tabItem { Label("Network", systemImage: "network") }
             AboutSettings().tabItem { Label("About", systemImage: "info.circle") }
@@ -130,7 +131,7 @@ struct AboutSettings: View {
         VStack(spacing: 14) {
             SymbolTile(symbol: "square.stack.3d.up.fill", size: 64)
             Text("Yukino Tools").font(.system(size: 22, weight: .semibold))
-            Text("Version 0.3.0 · Personal developer toolbox").font(.system(size: 12)).foregroundStyle(.secondary)
+            Text("Version 0.4.0 · Personal developer toolbox").font(.system(size: 12)).foregroundStyle(.secondary)
             Text("A quiet place for your everyday tools.").font(.system(size: 12)).foregroundStyle(.secondary)
             Text("Built with SwiftUI. Made for macOS.").font(.system(size: 10)).foregroundStyle(.tertiary)
         }.frame(maxWidth: .infinity, maxHeight: .infinity)

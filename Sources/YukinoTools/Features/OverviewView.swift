@@ -120,8 +120,10 @@ struct MetricCard: View {
 
 struct UsageChartPanel: View {
     @State private var days = 7
+    @State private var hoveredDate: Date?
     @EnvironmentObject private var usage: CodexUsageStore
     private var points: [UsagePoint] { usage.points(days: days) }
+    private var hoveredPoint: UsagePoint? { points.first { $0.date == hoveredDate } }
     var body: some View {
         Panel {
             VStack(alignment: .leading, spacing: 20) {
@@ -147,13 +149,25 @@ struct UsageChartPanel: View {
                     ContentUnavailableView("No recorded activity", systemImage: "chart.xyaxis.line", description: Text("No local token records for this period."))
                         .frame(height: 160)
                 } else {
-                Chart(points) { point in
-                    AreaMark(x: .value("Date", point.date), y: .value("Tokens", point.tokens))
-                        .interpolationMethod(.monotone)
-                        .foregroundStyle(LinearGradient(colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.01)], startPoint: .top, endPoint: .bottom))
-                    LineMark(x: .value("Date", point.date), y: .value("Tokens", point.tokens))
-                        .interpolationMethod(.monotone).lineStyle(StrokeStyle(lineWidth: 2.5))
-                        .foregroundStyle(Color.accentColor)
+                Chart {
+                    ForEach(points) { point in
+                        AreaMark(x: .value("Date", point.date), y: .value("Tokens", point.tokens))
+                            .interpolationMethod(.monotone)
+                            .foregroundStyle(LinearGradient(colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.01)], startPoint: .top, endPoint: .bottom))
+                        LineMark(x: .value("Date", point.date), y: .value("Tokens", point.tokens))
+                            .interpolationMethod(.monotone).lineStyle(StrokeStyle(lineWidth: 2.5))
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    if let point = hoveredPoint {
+                        RuleMark(x: .value("Date", point.date))
+                            .foregroundStyle(.secondary.opacity(0.4))
+                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                            .accessibilityHidden(true)
+                        PointMark(x: .value("Date", point.date), y: .value("Tokens", point.tokens))
+                            .foregroundStyle(Color.accentColor)
+                            .symbolSize(50)
+                            .accessibilityHidden(true)
+                    }
                 }
                 .chartYAxis {
                     AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
@@ -168,13 +182,61 @@ struct UsageChartPanel: View {
                         AxisValueLabel(format: days == 1 ? .dateTime.hour() : days == 7 ? .dateTime.weekday(.abbreviated) : .dateTime.month(.abbreviated).day())
                     }
                 }
+                .chartOverlay { proxy in
+                    GeometryReader { geometry in
+                        if let frame = proxy.plotFrame {
+                            let plot = geometry[frame]
+                            Rectangle().fill(.clear).contentShape(Rectangle())
+                                .onContinuousHover { phase in
+                                    switch phase {
+                                    case .active(let location):
+                                        guard plot.contains(location),
+                                              let date = proxy.value(atX: location.x - plot.minX, as: Date.self) else {
+                                            hoveredDate = nil
+                                            return
+                                        }
+                                        hoveredDate = points.min {
+                                            abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
+                                        }?.date
+                                    case .ended: hoveredDate = nil
+                                    }
+                                }
+                            if let point = hoveredPoint, let x = proxy.position(forX: point.date) {
+                                let width = min(220, plot.width)
+                                hoverLabel(for: point)
+                                    .frame(width: width)
+                                    .position(x: min(max(plot.minX + x, plot.minX + width / 2), plot.maxX - width / 2),
+                                              y: plot.minY + 34)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                    }
+                }
                 .frame(height: 160)
                 }
             }
+        }.onChange(of: days) { _, _ in hoveredDate = nil }
+    }
+    private func hoverLabel(for point: UsagePoint) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(point.date, format: .dateTime.year().month().day())
+                .font(.system(size: 11)).foregroundStyle(.secondary)
+            if days == 1 {
+                let end = Calendar.current.date(byAdding: .hour, value: 1, to: point.date) ?? point.date
+                Text("\(point.date.formatted(.dateTime.hour().minute()))–\(end.formatted(.dateTime.hour().minute()))")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+            Text("\(point.tokens.formatted()) tokens")
+                .font(.system(size: 13, weight: .semibold)).monospacedDigit()
         }
+        .padding(.horizontal, 12).padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.panel, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.hairline, lineWidth: 0.5))
+        .shadow(color: .black.opacity(0.08), radius: 5, y: 2)
     }
     private var total: String {
         let value = points.reduce(0) { $0 + $1.tokens }
-        return UsageFormat.tokens(Int64(value))
+        return UsageFormat.tokens(value)
     }
 }

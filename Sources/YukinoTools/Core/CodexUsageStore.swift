@@ -3,7 +3,7 @@ import YukinoCore
 
 struct UsagePoint: Identifiable {
     let date: Date
-    let tokens: Double
+    let tokens: Int64
     var id: Date { date }
 }
 
@@ -103,7 +103,7 @@ struct UsagePoint: Identifiable {
         let count = days == 1 ? calendar.component(.hour, from: Date()) + 1 : days
         return (0..<count).map { index in
             let date = calendar.date(byAdding: days == 1 ? .hour : .day, value: index, to: start)!
-            return UsagePoint(date: date, tokens: Double(totals[date] ?? 0))
+            return UsagePoint(date: date, tokens: totals[date] ?? 0)
         }
     }
 }

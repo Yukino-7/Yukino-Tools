@@ -21,7 +21,8 @@ struct MainWindow: View {
                 case .dockerMirror: DockerCommandsView(mirror: true).id(Tool.dockerMirror)
                 case .dockerTransfer: DockerCommandsView(mirror: false).id(Tool.dockerTransfer)
                 case .nginx: NginxFormatterView()
-                default: PlannedToolView(tool: state.selected)
+                case .openrouterDaily: OpenRouterDailyView()
+                default: OverviewView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -83,13 +84,13 @@ struct MainWindow: View {
                             }
                     }
                 }
-                ForEach(["AI", "Developer", "DevOps", "Network", "Database"], id: \.self) { group in
-                    let tools = Tool.allCases.filter { $0.group == group && $0.matches(search) }
+                ForEach(["AI", "Developer", "DevOps", "Network"], id: \.self) { group in
+                    let tools = Tool.availableTools.filter { $0.group == group && $0.matches(search) }
                     if !tools.isEmpty {
                         Section(group) { ForEach(tools) { tool in toolRow(tool) } }
                     }
                 }
-                if !Tool.allCases.contains(where: { $0.matches(search) }) {
+                if !Tool.availableTools.contains(where: { $0.matches(search) }) {
                     Text("No matching tools").foregroundStyle(.secondary)
                 }
             }.listStyle(.sidebar)
@@ -106,26 +107,7 @@ struct MainWindow: View {
             Image(systemName: tool.symbol).frame(width: 18)
             Text(tool.title).font(.system(size: 12))
             Spacer(minLength: 0)
-            if !tool.available { Image(systemName: "circle.dotted").font(.system(size: 10)).foregroundStyle(.tertiary) }
         }.padding(.vertical, 4).tag(tool)
             .contextMenu { if tool != .overview { FavoriteMenu(tool: tool) } }
-    }
-}
-
-struct PlannedToolView: View {
-    @EnvironmentObject private var state: AppState
-    let tool: Tool
-    var body: some View {
-        ToolPage(tool: tool) {
-            Panel {
-                VStack(spacing: 18) {
-                    SymbolTile(symbol: tool.symbol, size: 64)
-                    Text("On the workbench").font(.system(size: 20, weight: .semibold))
-                    Text("\(tool.title) is planned for a future version.\nYour everyday developer tools are ready to use now.")
-                        .foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    Button("Open JSON Formatter") { state.navigate(.json) }.buttonStyle(.borderedProminent)
-                }.frame(maxWidth: .infinity).padding(.vertical, 64)
-            }
-        }
     }
 }

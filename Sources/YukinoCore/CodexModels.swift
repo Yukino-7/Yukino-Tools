@@ -63,6 +63,10 @@ public struct CodexLimits: Codable, Equatable, Sendable {
     public let planType: String?
     public let capturedAt: Date
     public let source: String
+    /// Match the actual duration rather than assuming the primary/secondary ordering.
+    public func window(minutes: Int) -> CodexLimitWindow? {
+        [primary, secondary].compactMap { $0 }.first { $0.windowDurationMins == minutes && $0.usedPercent.isFinite }
+    }
     public init(primary: CodexLimitWindow?, secondary: CodexLimitWindow?, planType: String?, capturedAt: Date, source: String) {
         self.primary = primary; self.secondary = secondary; self.planType = planType
         self.capturedAt = capturedAt; self.source = source

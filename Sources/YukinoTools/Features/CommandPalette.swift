@@ -9,9 +9,9 @@ struct CommandPalette: View {
     private var tools: [Tool] {
         if query.isEmpty {
             let recent = state.recent.map(\.tool)
-            return recent + Tool.allCases.filter { !recent.contains($0) }
+            return recent + Tool.availableTools.filter { !recent.contains($0) }
         }
-        return Tool.allCases.filter { $0.matches(query) }
+        return Tool.availableTools.filter { $0.matches(query) }
     }
     var body: some View {
         VStack(spacing: 0) {
@@ -37,7 +37,7 @@ struct CommandPalette: View {
                                         Text(tool.subtitle).font(.system(size: 11)).foregroundStyle(.secondary)
                                     }
                                     Spacer()
-                                    Text(tool.available ? tool.group : "Planned").font(.system(size: 10)).foregroundStyle(.secondary)
+                                    Text(tool.group).font(.system(size: 10)).foregroundStyle(.secondary)
                                     if index == selectedIndex { Image(systemName: "return").foregroundStyle(.secondary) }
                                 }.padding(12).contentShape(Rectangle())
                                     .background(index == selectedIndex ? Color.accentColor.opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 8))

@@ -21,11 +21,12 @@
 
 SwiftUI + AppKit + Swift Charts，使用原生窗口、控件、文本编辑器与系统字体。无 WebView，无第三方包依赖。
 
-**v0.3.0** 新增 Docker Mirror、Docker Transfer 和 Nginx Formatter 三个 DevOps 工具。
+**v0.4.0** 新增 OpenRouter Markdown 日报、可切换的菜单栏用量样式、工具汇聚开屏动画及图表悬浮详情。
 
 | 工具 | 当前支持 |
 | --- | --- |
 | **Codex Usage** | 真实账户额度、重置时间、本机 Token 统计、缓存率、上下文估算、会话详情、Today / 7 days / 30 days 图表 |
+| **OpenRouter 日报** | 联网生成免费模型变化与周调用量 TOP 5、日期历史、原生 Markdown 阅读/源码查找、历史导入、复制和 `.md` 导出 |
 | **JSON Formatter** | 格式化、压缩、校验、行号、语法高亮、双栏编辑、查找与复制；保留数字精度、键顺序和转义文本 |
 | **Base64 Converter** | UTF-8 编码、解码、交换与复制 |
 | **Timestamp Converter** | 实时当前时间戳、秒/毫秒、日期双向转换、Local / UTC |
@@ -37,7 +38,9 @@ SwiftUI + AppKit + Swift Charts，使用原生窗口、控件、文本编辑器�
 
 工具箱还支持分组侧栏、搜索、收藏与拖动排序、最近使用记录、窗口位置记忆、菜单栏入口、系统/浅色/深色外观及登录启动设置。
 
-**待实现：** Token Calculator、HTTP Client、DNS Lookup、PostgreSQL、Redis。目前保留导航入口，页面会标明尚未实现。
+新增「工具汇聚」开屏：四个工具图标汇聚成应用标志，随后浮现名称和标语，约 1.8 秒后进入原页面。每次进程启动播放一次，支持 `Esc` 跳过和系统“减少动态效果”。
+
+**待实现：** Token Calculator、HTTP Client、DNS Lookup、PostgreSQL、Redis。这些功能的侧栏和搜索入口已隐藏。
 
 ### UUID 批量生成
 
@@ -65,11 +68,11 @@ Nginx 支持粘贴或打开配置文件，预览后复制或另存为，默认�
 
 | 安装包 | 用法 |
 | --- | --- |
-| `Yukino-Tools-0.3.0-macos-arm64.dmg` | 打开 DMG，将 **Yukino Tools.app** 拖到 **Applications** |
-| `Yukino-Tools-0.3.0-macos-arm64.zip` | 解压后，将应用移动到 **Applications** |
+| `Yukino-Tools-0.4.0-macos-arm64.dmg` | 打开 DMG，将 **Yukino Tools.app** 拖到 **Applications** |
+| `Yukino-Tools-0.4.0-macos-arm64.zip` | 解压后，将应用移动到 **Applications** |
 | `SHA256SUMS.txt` | 安装包的 SHA-256 校验值 |
 
-当前版本为 **v0.3.0**。要求 **macOS 14+**，预编译包适用于 **Apple Silicon（M 系列芯片）**。Intel Mac 可使用源码在本机编译，当前尚未提供经过验证的 Intel 二进制。
+当前版本为 **v0.4.0**。要求 **macOS 14+**，预编译包适用于 **Apple Silicon（M 系列芯片）**。Intel Mac 可使用源码在本机编译，当前尚未提供经过验证的 Intel 二进制。
 
 当前发布包使用本机 **ad hoc 签名**，尚未经过 Apple Developer ID 签名和公证。首次打开下载的应用时，macOS 可能阻止运行；确认下载来源后，可按系统提示在“系统设置 → 隐私与安全性”中选择“仍要打开”。
 
@@ -91,6 +94,31 @@ shasum -a 256 -c SHA256SUMS.txt
 账户额度反映当前登录账户；Token 图表仅覆盖**本机保留的日志**，不等于账户所有设备和云端的完整 Token 统计。图表按本机时区聚合。
 
 支持自动检测 ChatGPT / Codex 应用及常用 CLI 安装路径，复用 Codex 现有登录状态。自定义日志目录只改变本机统计来源；账户额度仍来自 CLI 当前登录账户。CLI 未安装、未登录或网络不可用时，界面会显示提示。
+
+## 菜单栏用量样式
+
+**Settings → 菜单栏** 可切换双圆环、单圆环、横线和纯数字，立即生效并记住选择；菜单中的“菜单栏样式”也可直接切换。默认双圆环，外环为 5h、内环为 7d；单圆环右半为 5h、左半为 7d；横线上方为 5h、下方为 7d。四种样式均以两行数字显示对应窗口的**已用比例**。
+
+![Yukino Tools — 菜单栏样式与真实用量预览](docs/images/menu-bar-styles.jpg)
+
+预览和菜单栏共用账户数据，按实际 300 / 10080 分钟窗口匹配，不依赖主次窗口顺序。窗口缺失或周期未知显示 `—` 和虚线；菜单可查看数据来源、更新时间和重置时间。图形随 macOS 菜单栏自动适配明暗颜色。
+
+## OpenRouter 日报
+
+侧栏 **AI → OpenRouter 日报**，或 `⌘K` 搜索 `日报` / `OpenRouter`。
+
+![Yukino Tools — OpenRouter Markdown 日报](docs/images/openrouter-daily.jpg)
+
+![Yukino Tools — 合并榜单的窄阅读区布局](docs/images/openrouter-comparison.jpg)
+
+- **生成今天**：读取 OpenRouter 模型接口与免费模型 discover 页面，展示免费模型新增/移出、周调用量 TOP 5、榜单变化和能力列表。日期采用 Asia/Shanghai；比较基线为早于今天的最近可用报告，正文标注实际日期。
+- **当日与历史**：默认收起历史列表并优先显示今日日报；点击文件名左侧的历史图标展开日期列表，阅读旧报告时可点“回到今日”。生成、导入、刷新按钮位于介绍文字右侧，为正文留出更多高度。原生排版标题、引用、列表、粗体、删除线、链接、代码和表格；TOP 5 与上次榜单对比合并为一张表：同时展示本周用量条、上次用量、变化百分比和排名变化；提供方、上下文及详情收在模型栏。布局自适应，无横向滚动，窄阅读区使用卡片。新生成的 Markdown 同样只输出一张榜单；旧报告仅合并阅读展示，源码与导出保持原文。全量模型表支持横向滚动。切换“源码”后可用 `⌘F` 查找，支持复制与导出 `.md`。
+- **导入历史**：选择包含 `YYYY-MM-DD.md` 的目录，复制 UTF-8 日报到 App；已有日期跳过，源文件保持原文。支持原 Yukino 日报格式，单个文件最多 2 MB。
+- **更新同日**：更新前提示，并保留旧 Markdown 与快照到 `Revisions`。历史目录为 `~/Library/Application Support/YukinoTools/Reports/OpenRouter`，可点击“报告目录”打开。
+
+免费口径为 prompt、completion 的 Token 单价都为零；缺失价格单独显示“价格未知”，缺失上下文显示 `—`。周 Token 数来自页面的展示值。页面结构变化时榜单降级；模型接口失败时不显示零个模型，也不推断全部移出；两个数据源均不可用时不保存空报告。
+
+当前实现为手动生成，历史可离线阅读。Swift 原生实现不依赖 Python，不调用模型推理接口，不上传本机历史报告。历史 Markdown 与生成快照仅保存在本机，不打包到应用或仓库。迁移分析和验证见 [日报迁移说明](docs/openrouter-daily-migration.md)。
 
 ## 快捷键
 
@@ -142,7 +170,9 @@ python3 scripts/generate-xcode-project.py
 ./scripts/test.sh
 ```
 
-26 项 Swift Testing 测试覆盖转换工具、端口校验与本机 TCP 开放/关闭端口，以及 Codex 累计计数、缓存口径、重复响应、分页合并、分叉历史、缺失额度、增量/截断/归档日志、只读 RPC 协议及超时。DevOps 测试还覆盖镜像端口与标签解析、输入校验、双向迁移、失败后停止、Nginx 引号/转义/变量/注释保留、幂等性、CRLF 和结构错误。测试通过假 Docker 函数记录参数，不访问镜像仓库。
+43 项 Swift Testing 测试覆盖转换工具、端口校验与本机 TCP 开放/关闭端口，以及 Codex 累计计数、缓存口径、重复响应、分页合并、分叉历史、缺失额度、增量/截断/归档日志、只读 RPC 协议及超时。DevOps 测试还覆盖镜像端口与标签解析、输入校验、双向迁移、失败后停止、Nginx 引号/转义/变量/注释保留、幂等性、CRLF 和结构错误。测试通过假 Docker 函数记录参数，不访问镜像仓库。
+
+日报新增 16 项测试覆盖零价格与未知值、榜单完整性和重名、历史基线、Markdown 转义、导入与备份、快照失效、部分 HTTP 失败、超时及取消，以及合并榜单的快照往返、旧报告匹配与数据保留。全部 43 项测试通过。另用真实响应验证模型列表与五条周榜，并回归解析 27 份历史日报；原生界面已检查导入、联网生成、源码查找及导出，导出与历史源文件逐字节一致。
 
 TCP 集成测试会临时创建回环监听，在限制网络的沙箱中运行需允许本地网络操作。原生界面已检查工具导航、文本编辑器、命令搜索、UUID 批量生成、真实 Codex 数据与刷新。登录启动需系统支持，未在测试中注册。
 

@@ -20,6 +20,21 @@ private func record(_ usage: [String: Int], id: String, owner: String = "session
     try line(["type": "token_usage_record", "timestamp": time, "payload": ["thread_id": owner, "response_id": id, "usage": usage]])
 }
 
+@Test func menuBarWindowsMatchDurationsAndKeepUnknownUsageMissing() {
+    let weekly = CodexLimitWindow(usedPercent: 42, windowDurationMins: 10080)
+    let fiveHour = CodexLimitWindow(usedPercent: 17, windowDurationMins: 300)
+    let reversed = CodexLimits(primary: weekly, secondary: fiveHour, planType: nil, capturedAt: Date(), source: "Account API")
+    #expect(reversed.window(minutes: 300)?.fraction == 0.17)
+    #expect(reversed.window(minutes: 10080)?.fraction == 0.42)
+    #expect(reversed.window(minutes: 60) == nil)
+    let unknown = CodexLimits(primary: CodexLimitWindow(usedPercent: 20), secondary: CodexLimitWindow(usedPercent: .nan, windowDurationMins: 10080), planType: nil, capturedAt: Date(), source: "Local logs")
+    #expect(unknown.window(minutes: 300) == nil)
+    #expect(unknown.window(minutes: 10080) == nil)
+    let exhausted = CodexLimits(primary: CodexLimitWindow(usedPercent: 120, windowDurationMins: 300), secondary: CodexLimitWindow(usedPercent: -10, windowDurationMins: 10080), planType: nil, capturedAt: Date(), source: "Account API")
+    #expect(exhausted.window(minutes: 300)?.fraction == 1)
+    #expect(exhausted.window(minutes: 10080)?.fraction == 0)
+}
+
 @Test func legacyUsageUsesCumulativeDeltasAndSkipsRepeatedSnapshots() throws {
     var parser = CodexLogParser()
     parser.ingest(try meta())
