@@ -98,7 +98,7 @@ struct MainWindow: View {
             HStack {
                 SettingsLink { Label("Settings", systemImage: "gearshape") }.buttonStyle(.plain)
                 Spacer()
-                Text("v0.3").font(.system(size: 10)).foregroundStyle(.tertiary)
+                Text("v\(AppVersion.current)").font(.system(size: 10)).foregroundStyle(.tertiary)
             }.font(.system(size: 12)).padding(20)
         }
     }

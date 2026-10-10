@@ -1,5 +1,9 @@
 import SwiftUI
 
+enum AppVersion {
+    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.0" }
+}
+
 enum Tool: String, CaseIterable, Identifiable, Codable {
     case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily
     var id: String { rawValue }

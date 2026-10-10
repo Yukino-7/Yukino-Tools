@@ -63,7 +63,7 @@ public enum OpenRouterReportService {
     private static func fetch(_ url: URL, limit: Int, session: URLSession) async -> Result<Data, Error> {
         do {
             var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
-            request.setValue("Yukino-Tools/0.3", forHTTPHeaderField: "User-Agent")
+            request.setValue("Yukino-Tools/0.4.0", forHTTPHeaderField: "User-Agent")
             let (bytes, response) = try await session.bytes(for: request)
             guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw ToolError.invalid("HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0)") }
             guard response.expectedContentLength <= limit else { throw ToolError.invalid("响应超出大小限制") }
