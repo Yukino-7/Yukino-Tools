@@ -4,138 +4,163 @@
 
 **A little more productive.**
 
-一个安静、轻量的原生 macOS 开发工具箱。日常转换、网络检测和 Codex 用量，放在同一个工作空间。
+原生 macOS 开发工具箱：日常转换、网络检测、DevOps 命令、Codex 用量和 OpenRouter 日报，一个 App 搞定。
 
-[![macOS](https://img.shields.io/badge/macOS-14%2B-black?logo=apple)](https://github.com/Yukino-7/Yukino-Tools/releases)
-[![Swift](https://img.shields.io/badge/Swift-6.0-orange?logo=swift)](Package.swift)
-[![Release](https://img.shields.io/github/v/release/Yukino-7/Yukino-Tools)](https://github.com/Yukino-7/Yukino-Tools/releases/latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![macOS](https://img.shields.io/badge/macOS-14%2B-black?logo=apple)](https://github.com/Yukino-7/Yukino-Tools/releases/latest) [![Swift](https://img.shields.io/badge/Swift-6.0-orange?logo=swift)](Package.swift) [![Release](https://img.shields.io/github/v/release/Yukino-7/Yukino-Tools)](https://github.com/Yukino-7/Yukino-Tools/releases/latest) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[下载安装](https://github.com/Yukino-7/Yukino-Tools/releases/latest) · [功能](#功能) · [源码构建](#源码构建) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/Yukino-7/Yukino-Tools/issues)
+[下载安装](#下载安装) · [功能概览](#功能概览) · [使用指南](#使用指南) · [数据与隐私](#数据与隐私) · [开发与构建](#开发与构建)
 
 </div>
 
-![Yukino Tools — JSON 格式化与语法高亮](docs/images/json-formatter.jpg)
-
-## 功能
-
-SwiftUI + AppKit + Swift Charts，使用原生窗口、控件、文本编辑器与系统字体。无 WebView，无第三方包依赖。
-
-**v0.4.1** 修复免费 TOP 5 抓错别名榜的问题，并阻止错误历史榜单参与涨跌比较。
-
-**v0.4.0** 新增 OpenRouter Markdown 日报、可切换的菜单栏用量样式、工具汇聚开屏动画及图表悬浮详情。
-
-| 工具 | 当前支持 |
-| --- | --- |
-| **Codex Usage** | 真实账户额度、重置时间、本机 Token 统计、缓存率、上下文估算、会话详情、Today / 7 days / 30 days 图表 |
-| **OpenRouter 日报** | 联网生成免费模型变化与周调用量 TOP 5、日期历史、原生 Markdown 阅读/源码查找、历史导入、复制和 `.md` 导出 |
-| **JSON Formatter** | 格式化、压缩、校验、行号、语法高亮、双栏编辑、查找与复制；保留数字精度、键顺序和转义文本 |
-| **Base64 Converter** | UTF-8 编码、解码、交换与复制 |
-| **Timestamp Converter** | 实时当前时间戳、秒/毫秒、日期双向转换、Local / UTC |
-| **UUID Generator** | 随机 UUID v4、大小写切换、批量生成，单次最多 1,000 个 |
-| **Port Check** | Network.framework 真实 TCP 探测、超时、连接耗时及最近端点记录 |
-| **Docker Mirror** | 通过镜像代理拉取、恢复原始标签，可配置代理、平台、sudo 与临时标签清理；预览、复制和导出 Shell 脚本 |
-| **Docker Transfer** | Local → Registry / Registry → Local 两个方向的命令生成；支持 host:port、命名空间、平台、逐步复制和脚本导出 |
-| **Nginx Formatter** | 原生双栏格式化、结构检查、2/4/8 空格缩进、LF/CRLF、UTF-8/Latin-1 文件导入与另存为；保留注释、引号、转义和变量 |
-
-工具箱还支持分组侧栏、搜索、收藏与拖动排序、最近使用记录、窗口位置记忆、菜单栏入口、系统/浅色/深色外观及登录启动设置。
-
-新增「工具汇聚」开屏：四个工具图标汇聚成应用标志，随后浮现名称和标语，约 1.8 秒后进入原页面。每次进程启动播放一次，支持 `Esc` 跳过和系统“减少动态效果”。
-
-**待实现：** Token Calculator、HTTP Client、DNS Lookup、PostgreSQL、Redis。这些功能的侧栏和搜索入口已隐藏。
-
-### UUID 批量生成
-
-![Yukino Tools — UUID 单个与批量生成](docs/images/uuid-generator.jpg)
-
-截图来自实际运行的原生应用，JSON 内容和 UUID 为公开展示示例。
-
-### DevOps 工具
-
-侧栏 **DevOps** 提供三个原生工具入口，也可在 `⌘K` 搜索 `replaceDocker`、`pullAndPush` 或 `nginxfmt`。
-
-![Yukino Tools — Docker 镜像代理命令预览](docs/images/docker-mirror.jpg)
-
-Docker 工具保留原工具的**命令生成**定位，不启动 Docker、不自动推送镜像。输入原始镜像名及仓库地址，选择方向与平台，生成后可复制完整脚本、单个步骤或导出 `.sh`。脚本使用 `&&` 串联，前一步失败时停止后续操作。缓存的仓库地址保存在本机设置；私库凭据由 Docker 自身管理。支持省略标签并采用 `latest`，重打标签工作流暂不支持 digest 引用。
-
-Nginx 支持粘贴或打开配置文件，预览后复制或另存为，默认输出文件名带 `.formatted.conf`。结构检查只检查引号、块和指令结束符；完整配置、指令参数及 include 文件应在部署环境运行 `nginx -t` 验证。编辑器最多处理 2 MB 文件。
-
-![Yukino Tools — Nginx 原生双栏格式化](docs/images/nginx-formatter.jpg)
-
-原工具行为、迁移方案和兼容范围见 [工具分析与集成说明](docs/tool-integration.md)。
+![Yukino Tools：JSON 格式化与双栏编辑](docs/images/json-formatter.jpg)
 
 ## 下载安装
 
-在 [Releases](https://github.com/Yukino-7/Yukino-Tools/releases/latest) 下载最新版本。
+当前版本：**[v0.4.1](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.4.1)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
 
-| 安装包 | 用法 |
+| 下载 | 安装方式 |
 | --- | --- |
-| `Yukino-Tools-0.4.1-macos-arm64.dmg` | 打开 DMG，将 **Yukino Tools.app** 拖到 **Applications** |
-| `Yukino-Tools-0.4.1-macos-arm64.zip` | 解压后，将应用移动到 **Applications** |
-| `SHA256SUMS.txt` | 安装包的 SHA-256 校验值 |
-
-当前版本为 **v0.4.1**。要求 **macOS 14+**，预编译包适用于 **Apple Silicon（M 系列芯片）**。Intel Mac 可使用源码在本机编译，当前尚未提供经过验证的 Intel 二进制。
-
-当前发布包使用本机 **ad hoc 签名**，尚未经过 Apple Developer ID 签名和公证。首次打开下载的应用时，macOS 可能阻止运行；确认下载来源后，可按系统提示在“系统设置 → 隐私与安全性”中选择“仍要打开”。
-
-将校验文件与下载包放到同一目录后，可执行：
+| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.4.1/Yukino-Tools-0.4.1-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
+| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.4.1/Yukino-Tools-0.4.1-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
+| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.4.1/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
 
 ```sh
-shasum -a 256 -c SHA256SUMS.txt
+shasum -a 256 Yukino-Tools-0.4.1-macos-arm64.dmg
 ```
 
-## Codex 真实数据
+将输出与校验文件中的同名条目比对；下载 ZIP 时，将命令中的文件名替换为对应 ZIP 文件名。
 
-首页、Codex 面板与菜单栏共用真实数据服务。
+安装包目前使用 **ad hoc 签名**，尚未经过 Apple Developer ID 签名和公证。首次打开若被 macOS 阻止，确认下载来源后，可按系统提示在“系统设置 → 隐私与安全性”中选择“仍要打开”。
 
-- **账户额度**：调用已安装 Codex CLI 的 `app-server`，通过只读的 `account/rateLimits/read` 获取当前 ChatGPT 账户的已用比例、窗口周期和重置时间。优先采用 `rateLimitsByLimitId.codex`；不启动模型任务，不直接读取或展示登录凭据。详见 [Codex App Server 文档](https://learn.chatgpt.com/docs/app-server)。
-- **本机会话与 Token**：增量读取 `~/.codex/sessions` 和 `archived_sessions` 的 JSONL 元数据及用量计数，合并同一会话的分页文件，按 response ID 去重，并兼容旧版累计计数。统计服务不保存或展示对话正文。
-- **统计口径**：总 Token = input + output；缓存输入和推理输出为其子集，不重复相加。缓存率 = cached input / input。上下文 = 最近请求的 Token / 日志中的模型窗口，是估算值。
-- **刷新**：默认每 60 秒刷新，支持手动刷新。在 **Settings → Codex** 中选择数据目录、CLI 或 15–300 秒刷新间隔。账户读取失败时显示错误及上次记录时间；缺失值显示 `—`，过期额度不会自动归零。
+Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 Intel 安装包。历史版本与变更见 [Releases](https://github.com/Yukino-7/Yukino-Tools/releases) 和 [更新记录](CHANGELOG.md)。
 
-账户额度反映当前登录账户；Token 图表仅覆盖**本机保留的日志**，不等于账户所有设备和云端的完整 Token 统计。图表按本机时区聚合。
+## 功能概览
 
-支持自动检测 ChatGPT / Codex 应用及常用 CLI 安装路径，复用 Codex 现有登录状态。自定义日志目录只改变本机统计来源；账户额度仍来自 CLI 当前登录账户。CLI 未安装、未登录或网络不可用时，界面会显示提示。
+| 分类 | 工具 | 主要功能 |
+| --- | --- | --- |
+| AI | **Codex Usage** | 真实账户已用额度、重置时间、本机 Token 与会话统计、缓存率、上下文估算、用量图表 |
+| AI | **OpenRouter 日报** | 免费模型变化、每周 Token 用量 TOP 5、榜单对比、Markdown 阅读与导出、历史导入 |
+| Developer | **JSON Formatter** | 格式化、压缩、校验、行号、语法高亮、双栏编辑与查找；保留数字精度、键顺序和转义文本 |
+| Developer | **Base64 Converter** | UTF-8 编码、解码、交换与复制 |
+| Developer | **Timestamp Converter** | 秒/毫秒时间戳与日期双向转换、Local / UTC、实时当前时间戳 |
+| Developer | **UUID Generator** | UUID v4、大小写切换、单个与批量生成，单次最多 1,000 个 |
+| Network | **Port Check** | TCP 连通性、连接耗时、超时设置与最近端点 |
+| DevOps | **Docker Mirror** | 生成镜像代理拉取及恢复原标签的命令，支持平台、sudo 和临时标签清理 |
+| DevOps | **Docker Transfer** | 本机与镜像仓库双向迁移的命令生成，支持 host:port、命名空间及分步复制 |
+| DevOps | **Nginx Formatter** | 双栏格式化、结构检查、2/4/8 空格缩进、LF/CRLF、UTF-8/Latin-1 文件导入与另存为 |
 
-## 菜单栏用量样式
+支持 `⌘K` 搜索工具、收藏与拖动排序、最近使用记录、窗口位置记忆、系统/浅色/深色外观及登录启动设置。侧栏与搜索只展示已实现的工具。
 
-**Settings → 菜单栏** 可切换双圆环、单圆环、横线和纯数字，立即生效并记住选择；菜单中的“菜单栏样式”也可直接切换。默认双圆环，外环为 5h、内环为 7d；单圆环右半为 5h、左半为 7d；横线上方为 5h、下方为 7d。四种样式均以两行数字显示对应窗口的**已用比例**。
+启动时播放约 1.8 秒的「工具汇聚」动画，每次进程启动播放一次；可按 `Esc` 跳过，也支持系统“减少动态效果”。
 
-![Yukino Tools — 菜单栏样式与真实用量预览](docs/images/menu-bar-styles.jpg)
+## 使用指南
 
-预览和菜单栏共用账户数据，按实际 300 / 10080 分钟窗口匹配，不依赖主次窗口顺序。窗口缺失或周期未知显示 `—` 和虚线；菜单可查看数据来源、更新时间和重置时间。图形随 macOS 菜单栏自动适配明暗颜色。
+### Codex 用量与菜单栏
 
-## OpenRouter 日报
+在侧栏打开 **AI → Codex Usage**。App 会自动检测已安装的 Codex CLI，复用当前 ChatGPT 登录状态，显示账户额度和本机 Token 统计。图表支持 Today / 7 days / 30 days，鼠标悬浮可查看日期、小时段和完整 Token 数。
 
-侧栏 **AI → OpenRouter 日报**，或 `⌘K` 搜索 `日报` / `OpenRouter`。
+首次使用若没有数据显示，在 **Settings → Codex** 中检查：
 
-![Yukino Tools — OpenRouter Markdown 日报](docs/images/openrouter-daily.jpg)
+1. Codex CLI 已安装，并已使用 ChatGPT 账户登录。
+2. 需要时手动选择 CLI 或本机数据目录，默认读取 `~/.codex`。
+3. 点击 **Save & refresh**。默认每 60 秒自动刷新，可调整为 15–300 秒。
 
-![Yukino Tools — 合并榜单的窄阅读区布局](docs/images/openrouter-comparison.jpg)
+**Settings → 菜单栏** 可实时预览和切换用量样式，也可从菜单中的“菜单栏样式”直接切换。选择会自动保存，四种样式都用两行数字显示 **5h / 7d 已用百分比**。
 
-- **生成今天**：读取 OpenRouter 模型接口与免费模型 discover 页面，展示免费模型新增/移出、周调用量 TOP 5、榜单变化和能力列表。日期采用 Asia/Shanghai；比较基线为早于今天的最近可用报告，正文标注实际日期。
-- **当日与历史**：默认收起历史列表并优先显示今日日报；点击文件名左侧的历史图标展开日期列表，阅读旧报告时可点“回到今日”。生成、导入、刷新按钮位于介绍文字右侧，为正文留出更多高度。原生排版标题、引用、列表、粗体、删除线、链接、代码和表格；TOP 5 与上次榜单对比合并为一张表：同时展示本周用量条、上次用量、变化百分比和排名变化；提供方、上下文及详情收在模型栏。布局自适应，无横向滚动，窄阅读区使用卡片。新生成的 Markdown 同样只输出一张榜单；旧报告仅合并阅读展示，源码与导出保持原文。全量模型表支持横向滚动。切换“源码”后可用 `⌘F` 查找，支持复制与导出 `.md`。
-- **导入历史**：选择包含 `YYYY-MM-DD.md` 的目录，复制 UTF-8 日报到 App；已有日期跳过，源文件保持原文。支持原 Yukino 日报格式，单个文件最多 2 MB。
-- **更新同日**：更新前提示，并保留旧 Markdown 与快照到 `Revisions`。历史目录为 `~/Library/Application Support/YukinoTools/Reports/OpenRouter`，可点击“报告目录”打开。
+| 样式 | 5h | 7d |
+| --- | --- | --- |
+| 双圆环（默认） | 外环 | 内环 |
+| 单圆环 | 右半环 | 左半环 |
+| 横线 | 上方 | 下方 |
+| 纯数字 | 第一行 | 第二行 |
 
-免费口径为 prompt、completion 的 Token 单价都为零；缺失价格单独显示“价格未知”，缺失上下文显示 `—`。周 Token 数来自页面的展示值。页面结构变化时榜单降级；模型接口失败时不显示零个模型，也不推断全部移出；两个数据源均不可用时不保存空报告。
+![菜单栏样式：双圆环、单圆环、横线与纯数字](docs/images/menu-bar-styles.jpg)
 
-当前实现为手动生成，历史可离线阅读。Swift 原生实现不依赖 Python，不调用模型推理接口，不上传本机历史报告。历史 Markdown 与生成快照仅保存在本机，不打包到应用或仓库。迁移分析和验证见 [日报迁移说明](docs/openrouter-daily-migration.md)。
+窗口缺失或周期未知时显示 `—`，图形使用虚线；菜单中可查看数据来源、更新时间和重置时间。菜单栏图形跟随 macOS 明暗颜色。
+
+### OpenRouter 日报
+
+在侧栏打开 **AI → OpenRouter 日报**，或按 `⌘K` 搜索 `日报`。
+
+1. **生成或更新今天**：读取公开模型列表和免费周榜，生成免费模型新增/移出、TOP 5 及模型能力列表。日期使用 Asia/Shanghai，比较基线为早于今天的最近可用报告。
+2. **阅读与对比**：默认显示当日并收起历史。TOP 5 与上次榜单合为一张表，包含本周用量条、上次用量、变化百分比和排名变化；窄阅读区自动使用卡片。全量模型表可横向滚动。
+3. **查看或导入历史**：点击文件名左侧的历史图标展开日期列表；旧报告可一键“回到今日”。导入时选择包含 `YYYY-MM-DD.md` 的目录，已有日期会跳过，源文件保持原文。
+4. **查找、复制与导出**：切到“源码”后可按 `⌘F` 查找；工具栏支持复制 Markdown 和导出 `.md`。
+
+![OpenRouter 日报：TOP 5 与上次用量合并展示](docs/images/openrouter-daily.jpg)
+
+<details>
+<summary>查看窄阅读区与历史列表布局</summary>
+
+![OpenRouter 日报：历史展开后的自适应卡片](docs/images/openrouter-comparison.jpg)
+
+</details>
+
+**从 v0.4.0 升级后**，请点击“更新今日日报”重新生成此前抓错的榜单。v0.4.1 已修正免费榜定位，并阻止无法验证的旧榜单参与用量和排名比较。
+
+日报目前为手动生成，历史可离线阅读。更新同日报告会将旧 Markdown 和快照保留到 `Revisions`；报告存储在 `~/Library/Application Support/YukinoTools/Reports/OpenRouter`，可通过“报告目录”打开。导入文件须为 UTF-8，单个不超过 2 MB。
+
+### Docker 与 Nginx
+
+在侧栏 **DevOps** 中选择工具，也可按 `⌘K` 搜索原工具名 `replaceDocker`、`pullAndPush` 或 `nginxfmt`。
+
+**Docker Mirror / Docker Transfer**：输入镜像与仓库地址，选择代理或迁移方向、平台及清理选项，预览后复制完整脚本、单个步骤或导出 `.sh`。支持省略标签并采用 `latest`；重打标签暂不支持 digest 引用。
+
+Docker 工具只生成命令，不启动 Docker、不自动拉取或推送镜像。命令使用 `&&` 串联，前一步失败时停止后续操作；仓库地址保存在本机设置，凭据由 Docker 自身管理。
+
+**Nginx Formatter**：粘贴或打开配置，选择缩进与换行格式，再复制或另存为。保留注释、引号、转义和变量，默认输出文件名带 `.formatted.conf`，文件上限为 2 MB。结构检查仅覆盖引号、块和指令结束符；完整配置仍应在部署环境执行 `nginx -t` 验证。
+
+<details>
+<summary>查看 Docker 与 Nginx 界面</summary>
+
+![Docker Mirror：镜像代理命令预览](docs/images/docker-mirror.jpg)
+
+![Nginx Formatter：原生双栏格式化](docs/images/nginx-formatter.jpg)
+
+</details>
+
+<details>
+<summary>查看 UUID 单个与批量生成界面</summary>
+
+![UUID Generator：单个与批量生成](docs/images/uuid-generator.jpg)
+
+</details>
+
+截图均来自实际运行的原生应用，展示数据仅代表截图时的状态。
 
 ## 快捷键
 
 | 快捷键 | 操作 |
 | --- | --- |
-| `⌘K` | 打开工具搜索；方向键选择、回车打开、Esc 关闭 |
-| `⌘1` | Overview |
-| `⌘2` | Codex Usage |
+| `⌘K` | 搜索工具；方向键选择、回车打开、`Esc` 关闭 |
+| `⌘1` | 打开 Overview |
+| `⌘2` | 打开 Codex Usage |
 | `⌘F` | 编辑器内查找；其他页面打开工具搜索 |
 | `⌘R` | 格式化 JSON |
-| `⌘,` | 设置 |
+| `⌘,` | 打开设置 |
 
-## 源码构建
+## 数据与隐私
 
-需要 **macOS 14+** 和 **Swift 6.0+**。仅安装 Apple Command Line Tools 即可使用脚本构建，无需下载第三方依赖。
+| 功能 | 数据来源与处理 |
+| --- | --- |
+| 文本转换与 Nginx | 在本机处理，文件由用户选择导入或保存 |
+| Port Check | 连接用户指定的 TCP 端点，检查后关闭，不发送应用数据 |
+| Docker 命令 | 在本机生成脚本，执行与仓库认证由用户及 Docker 管理 |
+| Codex 账户额度 | 通过已安装 CLI 的只读 `account/rateLimits/read` 获取；登录凭据留在 Codex 内部 |
+| Codex Token 统计 | 增量读取本机 `sessions` / `archived_sessions` 日志的元数据和计数，不保存或展示对话正文 |
+| OpenRouter 日报 | 获取公开模型 API 与 Discover 免费榜，报告和快照只保存在本机，不上传历史、不调用模型推理接口 |
+
+**Codex 统计口径**：账户额度反映 CLI 当前登录账户；Token 图表只覆盖本机保留的日志，不等于所有设备与云端的完整用量。总 Token = input + output，缓存输入与推理输出为其子集；缓存率 = cached input / input。上下文是最近请求 Token 与模型窗口的比例估算。图表按本机时区聚合。
+
+账户读取失败时保留可用记录并标注来源与时间，缺失值显示 `—`，过期额度不会自动归零。更改本机数据目录只改变日志统计来源，账户额度仍来自 CLI 当前登录账户。
+
+**OpenRouter 统计口径**：免费模型要求 prompt、completion 单价均为零；价格或上下文缺失会分别显示“价格未知”或 `—`。周榜采用页面展示的 Token 值，并非请求次数。页面改版或榜单不完整时明确降级；模型接口失败时不会把失败当作零个模型或全部移出，两个数据源都不可用时不保存空报告。个人日报和本机日志均不包含在仓库及安装包中。
+
+## 开发与构建
+
+### 环境与构建
+
+需要 **macOS 14+** 和 **Swift 6.0+**。App 使用 SwiftUI、AppKit 与 Swift Charts，无 WebView、无第三方包依赖。安装 Apple Command Line Tools 后即可使用脚本构建。
 
 ```sh
 git clone https://github.com/Yukino-7/Yukino-Tools.git
@@ -144,57 +169,46 @@ cd Yukino-Tools
 open "build/Yukino Tools.app"
 ```
 
-默认构建 Release；开发时使用 `./scripts/build-app.sh debug`。脚本使用项目内编译缓存、自动组装 `.app` 并执行 ad hoc 签名。默认构建当前机器架构。
+| 命令 | 用途 |
+| --- | --- |
+| `./scripts/build-app.sh` | 构建当前机器架构的 Release `.app`，输出到 `build/`，自动执行 ad hoc 签名 |
+| `./scripts/build-app.sh debug` | 构建 Debug 应用 |
+| `./scripts/test.sh` | 运行 Swift Testing 测试 |
+| `./scripts/package-release.sh` | 生成 ZIP、DMG、`SHA256SUMS.txt`，输出到 `build/releases/v<version>/` |
+| `python3 scripts/generate-xcode-project.py` | 新增或移动源文件后，重新生成 Xcode 工程 |
 
-### Xcode
+使用 Xcode 时，打开 `YukinoTools.xcodeproj`，选择 **YukinoTools** scheme 和 **My Mac** 后 Build & Run。要求 Xcode 16+，工程引用同目录 Swift Package，无远程依赖，也不需要开发者账户。
 
-打开 `YukinoTools.xcodeproj`，选择 **YukinoTools** scheme 和 **My Mac**，然后 Build & Run。要求 Xcode 16+；工程通过同目录 Swift Package 引用 `YukinoCore`，无远程依赖，也不需要开发者账户。
+### 验证范围
 
-新增或移动源文件后可重新生成工程：
+v0.4.1 的 **46 项测试已通过**，覆盖转换精度、TCP 连接、Codex 日志去重与额度、Docker 命令、Nginx 格式化，以及日报解析、免费榜定位、历史比较、导入备份、HTTP 失败、超时与取消。Docker 测试不访问镜像仓库；TCP 集成测试需允许本机回环监听。
 
-```sh
-python3 scripts/generate-xcode-project.py
-```
+已验证 SwiftPM Release 构建、签名、DMG/ZIP 完整性、真实 Codex 数据和日报生成，以及原生导入、查找、导出与多种窗口布局。27 份历史日报已回归解析，导出与相应源文件逐字节一致。Xcode 工程通过 plist 结构检查，尚未在完整 Xcode 中执行 Build & Run；登录启动未在测试中注册。
 
-当前版本已验证 SwiftPM 编译、测试和 `.app` 实机运行，Xcode 工程通过 plist 结构检查；尚未在完整 Xcode 中执行 Build & Run。
-
-### 发布打包
-
-```sh
-./scripts/package-release.sh
-```
-
-生成当前架构的 ZIP、DMG 和 `SHA256SUMS.txt`，输出目录为 `build/releases/v<version>/`。应用包包含 MIT 许可证。
-
-## 验证
-
-```sh
-./scripts/test.sh
-```
-
-46 项 Swift Testing 测试覆盖转换工具、端口校验与本机 TCP 开放/关闭端口，以及 Codex 累计计数、缓存口径、重复响应、分页合并、分叉历史、缺失额度、增量/截断/归档日志、只读 RPC 协议及超时。DevOps 测试还覆盖镜像端口与标签解析、输入校验、双向迁移、失败后停止、Nginx 引号/转义/变量/注释保留、幂等性、CRLF 和结构错误。测试通过假 Docker 函数记录参数，不访问镜像仓库。
-
-日报新增 19 项测试覆盖零价格与未知值、榜单完整性和重名、历史基线、Markdown 转义、导入与备份、快照失效、部分 HTTP 失败、超时及取消，以及合并榜单的快照往返、旧报告匹配与数据保留。v0.4.1 额外覆盖路由器文案、别名榜干扰、严格表头校验和旧错误基线隔离，全部 46 项测试通过。另用真实响应验证模型列表与五条周榜，并回归解析 27 份历史日报；原生界面已检查导入、联网生成、源码查找及导出，导出与历史源文件逐字节一致。
-
-TCP 集成测试会临时创建回环监听，在限制网络的沙箱中运行需允许本地网络操作。原生界面已检查工具导航、文本编辑器、命令搜索、UUID 批量生成、真实 Codex 数据与刷新。登录启动需系统支持，未在测试中注册。
-
-## 项目结构
+### 项目结构
 
 ```text
 Sources/
-  YukinoCore/            # 转换、Docker、Nginx、TCP、Codex 日志与账户服务
+  YukinoCore/            # 转换、DevOps、TCP、Codex 与日报服务
   YukinoTools/
-    App/                 # 入口、窗口、侧栏、快捷键
+    App/                 # 入口、窗口、侧栏、快捷键、开屏
     Core/                # 工具目录、状态、组件、编辑器、用量刷新
-    Features/            # Dashboard、工具、搜索、设置、菜单栏
+    Features/            # Dashboard、工具、日报、设置、菜单栏
 Tests/YukinoCoreTests/    # 服务测试
-docs/images/             # README 原生界面截图
-Resources/               # Info.plist、原生图标
-scripts/                 # 构建、测试、发布、工程及图标生成
+docs/                    # 迁移说明与界面截图
+Resources/               # 应用信息与图标
+scripts/                 # 构建、测试、打包、工程及图标生成
 ```
+
+## 文档与反馈
+
+- [更新记录](CHANGELOG.md) · [历史版本](https://github.com/Yukino-7/Yukino-Tools/releases)
+- [OpenRouter 日报迁移说明](docs/openrouter-daily-migration.md)
+- [Docker / Nginx 工具分析与集成说明](docs/tool-integration.md)
+- [提交问题或功能建议](https://github.com/Yukino-7/Yukino-Tools/issues)
 
 ## 许可与致谢
 
 [MIT License](LICENSE) © 2026 Yukino。
 
-视觉参考：[Project Management Dashboard](https://dribbble.com/shots/14038313-Project-Management-Dashboard-UX-UI-Design)。结合 macOS 原生控件与键盘体验实现。
+视觉参考：[Project Management Dashboard](https://dribbble.com/shots/14038313-Project-Management-Dashboard-UX-UI-Design)。
