@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum AppVersion {
-    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.0" }
+    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.1" }
 }
 
 enum Tool: String, CaseIterable, Identifiable, Codable {

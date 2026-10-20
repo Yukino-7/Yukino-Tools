@@ -90,3 +90,5 @@ AI 分组新增 **OpenRouter 日报**。
 2026-10-10：TOP 5 与上次榜单对比合并，模型信息和用量变化同排。新 Markdown 使用单张榜单；旧报告只在阅读时按模型身份合并，保留基线、汇总和掉榜说明，源码及导出保持原文。两表不匹配时保留原始展示，避免丢失数据。新增 3 项回归测试，全部 42 项通过；Release 构建及正常窗口、1000 pt 窗口、展开历史后的卡片布局通过检查。
 
 2026-10-10 发布收尾：删除无数据的全平台非免费榜首占位，新报告不再输出，历史阅读时隐藏。包含菜单栏窗口匹配测试在内，共 43 项测试通过。
+
+2026-10-20 免费榜修复：当前页面在免费榜之前新增/展示 Free Models Router 文案与 Always-latest aliases 表。旧解析器从首次出现 free models 的文字开始扫描，将 DeepSeek Flash Latest、Decider Flash Latest、Pareto Latest、Jev Latest、Claude Haiku Latest 误读为免费 TOP 5；已在本机当日报告中复现。现严格定位 Free models 标题、限制到下一标题之前并校验 Rank / Model / Tokens/wk / Context 表头。真实 HTML 中五条正确记录均匹配免费 API 的模型 ID；新增 3 项回归测试，共 46 项通过。新快照记录榜单解析版本，旧快照仅在免费模型身份可验证时才用于变化比较，防止错榜继续污染基线。

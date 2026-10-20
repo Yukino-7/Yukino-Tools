@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.1 — 2026-10-20
+
+- 修复免费周榜定位：严格匹配 Free models 标题及 Rank / Model / Tokens/wk / Context 表头，避免将路由器介绍后的 Always-latest aliases 榜误当成免费榜；解析不完整时明确降级。
+- 旧榜单只有在能验证属于免费模型时才用于变化比较；新增 3 项回归测试，合计 46 项通过，并与当前官方页面逐项核对。
+
 ## v0.4.0 — 2026-10-10
 
 - 新增 OpenRouter 日报：Swift 获取公开模型列表和免费周榜，生成当日 Markdown，比较最近历史中的免费模型与 TOP 5。

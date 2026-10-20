@@ -10,7 +10,7 @@ private func free(_ id: String = "vendor/a:free", name: String = "Vendor: Model 
     return row
 }
 private func weeklyHTML() -> String {
-    "<nav>Free models\n1 Bogus 99T 1M</nav><h2>Free models</h2><table>" + (1...5).map {
+    "<nav>Free models\n1 Bogus 99T 1M</nav><h2>Free models</h2><table><thead><tr><th>Rank</th><th>Model</th><th>Tokens/wk</th><th>Context</th></tr></thead>" + (1...5).map {
         "<tr><td>\($0)</td><td>Model \(Character(UnicodeScalar(64 + $0)!)) (free)</td><td>\(6 - $0).5B</td><td>1M</td></tr>"
     }.joined() + "</table><h2>Video models</h2><tr>1 Bogus 99T 1M</tr>"
 }
@@ -53,6 +53,48 @@ private func tempDirectory() throws -> URL {
     #expect(rows.first?.tokens == 5_500_000_000)
     #expect(OpenRouterReportService.parseTop5(html.replacingOccurrences(of: "<td>3</td>", with: "<td>7</td>")).isEmpty)
     #expect(OpenRouterReportService.parseTop5("<h2>Paid models</h2>" + html.replacingOccurrences(of: "Free models", with: "Other models")).isEmpty)
+}
+
+@Test func dailyWeeklyParserIgnoresRouterMentionsAndEarlierAliasLeaderboard() {
+    let aliases = "<table><tr><th>Rank</th><th>Model</th><th>Family tokens</th><th>Context</th></tr>" + (1...5).map {
+        "<tr><td>\($0)</td><td>Paid Alias \($0) Latest</td><td>99T</td><td>1M</td></tr>"
+    }.joined() + "</table>"
+    let prefix = "<div aria-label='Open Free Models Router details'>Free Models Router</div><p>The simplest way to get free inference.</p><h2>Always-latest aliases</h2>" + aliases
+    let page = prefix + weeklyHTML()
+    let rows = OpenRouterReportService.parseTop5(page)
+    #expect(rows.count == 5 && rows.first?.name == "Model A" && rows.first?.tokens == 5.5e9)
+    #expect(rows.allSatisfy { !$0.name.contains("Alias") })
+    #expect(OpenRouterReportService.parseTop5(prefix).isEmpty)
+    #expect(OpenRouterReportService.parseTop5(prefix + "<h2>Free models</h2><p>Unavailable</p><h2>Other models</h2>" + aliases.replacingOccurrences(of: "Family tokens", with: "Tokens/wk")).isEmpty)
+    #expect(OpenRouterReportService.parseTop5(page.replacingOccurrences(of: "Tokens/wk", with: "Family tokens")).isEmpty)
+}
+
+@Test func dailyWeeklyParserHandlesDiscoverMarkupAndRejectsAmbiguousFreeCards() {
+    let page = weeklyHTML().replacingOccurrences(of: "<h2>Free models</h2>", with: "<h2 class='card-heading'><span>Free&nbsp;models</span></h2>")
+        .replacingOccurrences(of: "<td>5.5B</td>", with: "<td><span class='tokens'>5.5<!-- -->B</span></td>")
+    #expect(OpenRouterReportService.parseTop5(page).first?.tokens == 5.5e9)
+    #expect(OpenRouterReportService.parseTop5(page + page).isEmpty)
+    #expect(OpenRouterReportService.parseTop5(page.replacingOccurrences(of: "Model B", with: "Model A")).isEmpty)
+}
+
+@Test func dailyUnverifiedLegacyAliasRankingIsNotUsedForChanges() throws {
+    var previous = try sampleReport(day: reportDate.addingTimeInterval(-86400)).snapshot
+    previous.rankingParserVersion = nil
+    previous.top5 = previous.top5.map { WeeklyModel(rank: $0.rank, name: "Alias \($0.rank) Latest", provider: "—", tokens: 99e12, context: "1M") }
+    let today = try sampleReport().snapshot
+    let markdown = OpenRouterReportService.render(today, previous: previous)
+    #expect(markdown.contains("历史周榜无法确认来自免费榜"))
+    #expect(!markdown.contains("新上榜") && !markdown.contains("掉出今日榜单") && !markdown.contains("99.0T"))
+    var validLegacy = try sampleReport(day: reportDate.addingTimeInterval(-86400)).snapshot
+    validLegacy.rankingParserVersion = nil
+    validLegacy.models = validLegacy.top5.map { FreeModel(id: "vendor/\($0.rank)", name: "Vendor: \($0.name) (free)", context: nil, input: [], output: [], tools: false, structured: false) }
+    validLegacy.top5[0].modelID = "vendor/1"
+    #expect(!OpenRouterReportService.render(today, previous: validLegacy).contains("历史周榜无法确认来自免费榜"))
+    let data = try JSONEncoder().encode(previous)
+    var object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    object.removeValue(forKey: "rankingParserVersion")
+    let oldSnapshot = try JSONDecoder().decode(DailySnapshot.self, from: JSONSerialization.data(withJSONObject: object))
+    #expect(oldSnapshot.rankingParserVersion == nil)
 }
 
 @Test func dailyAmbiguousModelNamesDoNotInventIDsAndEscapingPreservesTables() throws {

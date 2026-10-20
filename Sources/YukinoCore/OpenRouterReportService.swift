@@ -27,6 +27,7 @@ public struct DailySnapshot: Codable, Equatable, Sendable {
     public var unknownPrices: Int?
     public var top5: [WeeklyModel]
     public var warnings: [String]
+    public var rankingParserVersion: Int? = nil
 }
 public struct DailyReport: Sendable {
     public let snapshot: DailySnapshot
@@ -63,7 +64,7 @@ public enum OpenRouterReportService {
     private static func fetch(_ url: URL, limit: Int, session: URLSession) async -> Result<Data, Error> {
         do {
             var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
-            request.setValue("Yukino-Tools/0.4.0", forHTTPHeaderField: "User-Agent")
+            request.setValue("Yukino-Tools/0.4.1", forHTTPHeaderField: "User-Agent")
             let (bytes, response) = try await session.bytes(for: request)
             guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { throw ToolError.invalid("HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0)") }
             guard response.expectedContentLength <= limit else { throw ToolError.invalid("响应超出大小限制") }
@@ -99,23 +100,43 @@ public enum OpenRouterReportService {
     }
 
     public static func parseTop5(_ html: String) -> [WeeklyModel] {
-        var cleaned = replacing(html, #"(?is)<(script|style|aside|nav|header|footer)\b[^>]*>.*?</\1>"#, " ")
-        guard let start = cleaned.range(of: "free models", options: .caseInsensitive) else { return [] }
-        cleaned = String(cleaned[start.lowerBound...])
-        let ends = ["video models", "image models", "explore every modality"].compactMap { cleaned.range(of: $0, options: .caseInsensitive)?.lowerBound }
-        if let end = ends.min() { cleaned = String(cleaned[..<end]) }
-        cleaned = replacing(cleaned, #"(?i)<br\s*/?>|<tr\b[^>]*>|</tr>"#, "\n")
-        cleaned = decodeEntities(replacing(cleaned, #"<[^>]+>"#, " "))
-        cleaned = replacing(cleaned, #"[ \t]+"#, " ")
-        let pattern = #"^\s*(\d+)\s+(.+?)\s*(?:\(free\))?\s+([\d.]+)\s*([TBMK])\s+(\d+(?:\.\d+)?)\s*([KM]?)\s*$"#
+        let cleaned = replacing(html, #"(?is)<(script|style|aside|nav|header|footer)\b[^>]*>.*?</\1>"#, " ")
+        func text(_ html: String) -> String {
+            replacing(decodeEntities(replacing(html, #"<[^>]+>"#, " ")), #"\s+"#, " ").trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        func matches(_ pattern: String, _ source: String) -> [NSTextCheckingResult] {
+            guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+            return regex.matches(in: source, range: NSRange(source.startIndex..., in: source))
+        }
+        // Router descriptions and alias tables can mention "free models" before the real card.
+        // Require the exact heading, stop at the next heading, and validate the table's columns.
+        let source = cleaned as NSString
+        let headings = matches(#"(?is)<h([1-6])\b[^>]*>(.*?)</h\1\s*>"#, cleaned)
+        let freeHeadings = headings.filter { text(source.substring(with: $0.range(at: 2))).lowercased() == "free models" }
+        guard freeHeadings.count == 1, let heading = freeHeadings.first else { return [] }
+        let start = NSMaxRange(heading.range)
+        let end = headings.first(where: { $0.range.location >= start })?.range.location ?? source.length
+        let section = source.substring(with: NSRange(location: start, length: end - start))
+        let sectionSource = section as NSString
+        let tables = matches(#"(?is)<table\b[^>]*>.*?</table\s*>"#, section).map { sectionSource.substring(with: $0.range) }
+        let candidates = tables.filter { table in
+            let tableSource = table as NSString
+            let headers = matches(#"(?is)<th\b[^>]*>(.*?)</th\s*>"#, table).map { text(tableSource.substring(with: $0.range(at: 1))).lowercased() }
+            return headers == ["rank", "model", "tokens/wk", "context"]
+        }
+        guard candidates.count == 1, let table = candidates.first else { return [] }
         var rows: [WeeklyModel] = []; var seen: Set<String> = []
-        for line in cleaned.components(separatedBy: "\n") {
-            guard let fields = captures(line, pattern), let rank = Int(fields[0]), rank == rows.count + 1,
-                  let amount = Double(fields[2]), amount.isFinite, amount > 0, seen.insert(canonical(fields[1])).inserted else { continue }
-            let units: [String: Double] = ["T": 1e12, "B": 1e9, "M": 1e6, "K": 1e3]
-            let multiplier = units[fields[3].uppercased()] ?? 1
-            guard (amount * multiplier).isFinite else { continue }
-            rows.append(WeeklyModel(rank: rank, name: fields[1].trimmingCharacters(in: .whitespaces), provider: "—", tokens: amount * multiplier, context: fields[4] + fields[5]))
+        let tableSource = table as NSString
+        for match in matches(#"(?is)<tr\b[^>]*>(.*?)</tr\s*>"#, table) {
+            let row = tableSource.substring(with: match.range(at: 1)); let rowSource = row as NSString
+            let cells = matches(#"(?is)<td\b[^>]*>(.*?)</td\s*>"#, row).map { text(rowSource.substring(with: $0.range(at: 1))) }
+            if cells.isEmpty { continue } // Header row.
+            guard cells.count == 4, let rank = Int(cells[0]), rank == rows.count + 1,
+                  let tokenParts = captures(cells[2], #"^([\d.]+)\s*([TBMK])$"#), let tokens = tokenValue(tokenParts.joined()), tokens.isFinite, tokens > 0,
+                  cells[3].range(of: #"^\d+(?:\.\d+)?\s*[KM]?$"#, options: [.regularExpression, .caseInsensitive]) != nil,
+                  seen.insert(canonical(cells[1])).inserted else { return [] }
+            let name = replacing(cells[1], #"(?i)\s*\(free\)\s*$"#, "")
+            rows.append(WeeklyModel(rank: rank, name: name, provider: "—", tokens: tokens, context: cells[3].replacingOccurrences(of: " ", with: "")))
             if rows.count == 5 { break }
         }
         return rows.count == 5 ? rows : []
@@ -131,6 +152,7 @@ public enum OpenRouterReportService {
         } else if !errors.contains(where: { $0.hasPrefix("模型接口") }) { snapshot.warnings.append("模型接口数据不可用") }
         if let html {
             snapshot.top5 = parseTop5(html)
+            if !snapshot.top5.isEmpty { snapshot.rankingParserVersion = 2 }
             if snapshot.top5.isEmpty { snapshot.warnings.append("周榜页面结构变化或数据不足五条，跳过 TOP 5") }
         } else if !errors.contains(where: { $0.hasPrefix("周榜页面") }) { snapshot.warnings.append("周榜页面数据不可用") }
         guard snapshot.models != nil || !snapshot.top5.isEmpty else { throw ToolError.invalid("日报数据源不可用，未保存空报告。\n" + snapshot.warnings.joined(separator: "\n")) }
@@ -186,7 +208,10 @@ public enum OpenRouterReportService {
         out += ["## 一、免费模型本周调用量榜 TOP 5", "", "> 来源: [OpenRouter Free models](https://openrouter.ai/discover?lane=free)", ""]
         if today.top5.isEmpty { out += ["> 数据源不可用，跳过本周调用量榜。", ""] }
         else {
-            let baseline = previous.flatMap { $0.top5.count == 5 ? $0 : nil }
+            let baseline = previous.flatMap { validRankingBaseline($0) ? $0 : nil }
+            if let previous, previous.top5.count == 5, baseline == nil {
+                out += ["> 历史周榜无法确认来自免费榜，跳过用量与排名对比。", ""]
+            }
             out += [baseline.map { "> 基线: `\($0.dateKey).md`；周 Token 为页面展示值，变化百分比由展示值计算。" } ?? "> 无可用周榜基线，暂不计算用量与排名变化。", ""]
             out += ["| " + MarkdownDocument.openRouterRankingHeaders.joined(separator: " | ") + " |", "| ---: | --- | --- | ---: | ---: | ---: | :---: | ---: | --- |"]
             for row in today.top5 {
@@ -227,6 +252,16 @@ public enum OpenRouterReportService {
         if let colon = name.firstIndex(of: ":") { name = String(name[name.index(after: colon)...]).trimmingCharacters(in: .whitespaces) }
         for suffix in [" (free)", " (preview)"] where name.lowercased().hasSuffix(suffix) { name = String(name.dropLast(suffix.count)) }
         return name.lowercased()
+    }
+    private static func validRankingBaseline(_ snapshot: DailySnapshot) -> Bool {
+        guard snapshot.top5.count == 5 else { return false }
+        if snapshot.rankingParserVersion == 2 { return true }
+        // Old snapshots may contain the alias leaderboard. Only trust independently matched free models.
+        guard let models = snapshot.models else { return false }
+        return snapshot.top5.allSatisfy { row in
+            if let id = row.modelID { return models.contains { $0.id == id } }
+            return models.filter { canonical($0.name) == canonical(row.name) }.count == 1
+        }
     }
     static func escape(_ value: String) -> String {
         var text = value.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\r", with: " ").replacingOccurrences(of: "\n", with: " ")
