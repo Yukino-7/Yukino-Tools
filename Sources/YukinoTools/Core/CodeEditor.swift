@@ -6,6 +6,7 @@ struct CodeEditor: NSViewRepresentable {
     @Binding var text: String
     var editable = true
     var highlightJSON = false
+    var matchRanges: [NSRange] = []
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeNSView(context: Context) -> NSScrollView {
@@ -87,6 +88,9 @@ struct CodeEditor: NSViewRepresentable {
                     }
                 }
             }
+            for match in parent.matchRanges where match.location != NSNotFound && match.length > 0 && match.location <= storage.length && match.length <= storage.length - match.location {
+                storage.addAttribute(.backgroundColor, value: NSColor.systemYellow.withAlphaComponent(0.3), range: match)
+            }
             storage.endEditing()
             view.selectedRanges = selection
             view.typingAttributes = [.font: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular), .foregroundColor: NSColor.labelColor]
@@ -144,6 +148,7 @@ struct EditorPanel: View {
     @Binding var text: String
     var editable = true
     var json = false
+    var matchRanges: [NSRange] = []
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -152,7 +157,7 @@ struct EditorPanel: View {
                 Text("\(text.utf8.count.formatted()) bytes").font(.system(size: 10)).foregroundStyle(.secondary)
             }.padding(.horizontal, 14).frame(height: 44).background(.quaternary.opacity(0.35))
             Divider()
-            CodeEditor(text: $text, editable: editable, highlightJSON: json)
+            CodeEditor(text: $text, editable: editable, highlightJSON: json, matchRanges: matchRanges)
                 .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
         }
         .background(Color.panel, in: RoundedRectangle(cornerRadius: 12))

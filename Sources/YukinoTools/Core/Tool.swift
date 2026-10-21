@@ -1,11 +1,11 @@
 import SwiftUI
 
 enum AppVersion {
-    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.1" }
+    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.5.0" }
 }
 
 enum Tool: String, CaseIterable, Identifiable, Codable {
-    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily
+    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily, process, cron, jwt, regex
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -25,6 +25,10 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dockerTransfer: "Docker Transfer"
         case .nginx: "Nginx Formatter"
         case .openrouterDaily: "OpenRouter 日报"
+        case .cron: "Cron 表达式助手"
+        case .jwt: "JWT 查看器"
+        case .regex: "正则表达式调试"
+        case .process: "进程查找"
         }
     }
     var subtitle: String {
@@ -45,6 +49,10 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dockerTransfer: "Build image transfer commands for your private registry."
         case .nginx: "Format and inspect Nginx configurations on your Mac."
         case .openrouterDaily: "Free-model changes, weekly rankings and Markdown history."
+        case .cron: "解释标准 Cron 与 Quartz，预览指定时区的执行时间。"
+        case .jwt: "在本机查看 JWT 内容与时间声明，签名状态清晰可见。"
+        case .regex: "实时匹配、捕获组与替换预览。"
+        case .process: "按名称或 TCP 监听端口查找 Mac 进程，并结束当前用户的进程。"
         }
     }
     var symbol: String {
@@ -65,14 +73,18 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dockerTransfer: "arrow.triangle.swap"
         case .nginx: "text.alignleft"
         case .openrouterDaily: "doc.richtext"
+        case .cron: "calendar.badge.clock"
+        case .jwt: "key.horizontal"
+        case .regex: "text.magnifyingglass"
+        case .process: "cpu"
         }
     }
     var group: String {
         switch self {
         case .overview: "Workspace"
         case .codex, .token, .openrouterDaily: "AI"
-        case .json, .base64, .timestamp, .uuid: "Developer"
-        case .port, .http, .dns: "Network"
+        case .json, .base64, .timestamp, .uuid, .cron, .jwt, .regex: "Developer"
+        case .port, .http, .dns, .process: "Network"
         case .postgres, .redis: "Database"
         case .dockerMirror, .dockerTransfer, .nginx: "DevOps"
         }
@@ -88,6 +100,10 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .dockerTransfer: "pullAndPush 拉取 推送 私库"
         case .nginx: "nginxfmt 配置 格式化"
         case .openrouterDaily: "daily report 免费模型 榜单 markdown 日报"
+        case .cron: "crontab quartz schedule 定时 调度 计划 表达式"
+        case .jwt: "json web token bearer header payload 令牌 解码 有效期 过期"
+        case .regex: "regexp regular expression 正则 匹配 捕获 替换"
+        case .process: "process pid kill terminate 进程 服务 端口 占用 结束 node java redis nginx"
         default: ""
         }
     }

@@ -16,16 +16,16 @@
 
 ## 下载安装
 
-当前版本：**[v0.4.1](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.4.1)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
+当前版本：**[v0.5.0](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.5.0)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
 
 | 下载 | 安装方式 |
 | --- | --- |
-| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.4.1/Yukino-Tools-0.4.1-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
-| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.4.1/Yukino-Tools-0.4.1-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
-| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.4.1/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
+| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.5.0/Yukino-Tools-0.5.0-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
+| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.5.0/Yukino-Tools-0.5.0-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
+| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.5.0/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
 
 ```sh
-shasum -a 256 Yukino-Tools-0.4.1-macos-arm64.dmg
+shasum -a 256 Yukino-Tools-0.5.0-macos-arm64.dmg
 ```
 
 将输出与校验文件中的同名条目比对；下载 ZIP 时，将命令中的文件名替换为对应 ZIP 文件名。
@@ -44,6 +44,10 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 | Developer | **Base64 Converter** | UTF-8 编码、解码、交换与复制 |
 | Developer | **Timestamp Converter** | 秒/毫秒时间戳与日期双向转换、Local / UTC、实时当前时间戳 |
 | Developer | **UUID Generator** | UUID v4、大小写切换、单个与批量生成，单次最多 1,000 个 |
+| Developer | **Cron 表达式助手** | 标准五字段 / Quartz 六七字段、中文解释、时区与未来 10 次执行时间、月末与工作日规则 |
+| Developer | **JWT 查看器** | 本机解码 Header / Payload、iat / nbf / exp、有效期倒计时，明确显示签名未验证 |
+| Developer | **正则表达式调试** | ICU 实时匹配高亮、捕获组、i/m/s 选项与全局替换预览，支持超时与结果数量限制 |
+| Network | **进程查找** | 按名称或 TCP 监听端口定位本机进程，查看 PID、命令、归属与端口，确认后结束当前用户的进程 |
 | Network | **Port Check** | TCP 连通性、连接耗时、超时设置与最近端点 |
 | DevOps | **Docker Mirror** | 生成镜像代理拉取及恢复原标签的命令，支持平台、sudo 和临时标签清理 |
 | DevOps | **Docker Transfer** | 本机与镜像仓库双向迁移的命令生成，支持 host:port、命名空间及分步复制 |
@@ -54,6 +58,18 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 启动时播放约 1.8 秒的「工具汇聚」动画，每次进程启动播放一次；可按 `Esc` 跳过，也支持系统“减少动态效果”。
 
 ## 使用指南
+
+### Cron、JWT 与正则
+
+在 **Developer** 分类打开工具，或按 `⌘K` 搜索 `cron`、`jwt`、`正则`。从 v0.5.0 起，安装包已包含这三个工具。
+
+**Cron 表达式助手**：选择标准五字段或 Quartz 六 / 七字段，输入表达式、IANA 时区和预览起点，自动显示中文字段说明与未来 10 次执行时间，可复制表达式或时间列表。标准 Cron 的星期 `0` / `7` 为周日；日与星期均受限时按“或”匹配，含通配符时按“且”匹配。Quartz 的星期 `1` 为周日，日与星期须恰好一个为 `?`；支持 `L`、`L-n`、`nW`、`LW`、`nL`、`n#k`，年份为 1970–2099。只预览时间，不创建或执行系统任务；夏令时跳过不存在时刻，重复时刻按实际时间列出两次，具体任务调度器的补偿策略可能不同。
+
+**JWT 查看器**：粘贴三段式 JWT（可带 `Bearer ` 前缀），自动解析并格式化 Header 与 Payload，可分别复制。时间声明要求 Unix 秒数值，支持小数；可切换本地 / UTC 时间，查看是否过期、尚未生效及剩余时间。签名始终标记为“未验证”，`alg=none` 明确提示未签名；本工具不验证签发者、受众，不解密 JWE。输入上限 256 KB，不写入历史或设置。
+
+**正则表达式调试**：输入不带 `/` 分隔符的 ICU 表达式与测试文本，自动高亮匹配，列出 UTF-16 位置、长度及捕获组；支持忽略大小写、多行锚点与点匹配换行。替换模板使用 `$0`、`$1` 等语法，空模板删除匹配内容，零宽匹配在列表显示。匹配在后台运行，时间预算 0.5 秒，最多显示 1,000 处匹配；超过数量限制时停用替换预览。表达式与模板各限 4,096 个 UTF-16 单元，测试文本限 100,000 个，捕获组最多 100 个，替换输出最多 1,000,000 个 UTF-16 单元。ICU 与 JavaScript / Python 正则语法可能不同。
+
+语义参考：[Cron 手册](https://man7.org/linux/man-pages/man5/crontab.5.html)、[Quartz 文档](https://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/crontrigger.html)、[JWT RFC 7519](https://www.rfc-editor.org/rfc/rfc7519.html)、[Apple 正则文档](https://developer.apple.com/documentation/foundation/nsregularexpression)。
 
 ### Codex 用量与菜单栏
 
@@ -100,6 +116,18 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 
 日报目前为手动生成，历史可离线阅读。更新同日报告会将旧 Markdown 和快照保留到 `Revisions`；报告存储在 `~/Library/Application Support/YukinoTools/Reports/OpenRouter`，可通过“报告目录”打开。导入文件须为 UTF-8，单个不超过 2 MB。
 
+### 进程查找
+
+在侧栏打开 **Network → 进程查找**，或按 `⌘K` 搜索 `进程`、`PID`、`端口占用`。
+
+1. 输入进程/服务名称（如 `node`、`java`、`redis`）或端口号（如 `3000`），点击“查找”或按回车。自动模式把纯数字作为端口，也可手动切换“进程名称 / 监听端口”。
+2. 查看匹配进程的 PID、归属、TCP 监听端口和启动命令；支持复制 PID 或命令。名称同时匹配可执行文件路径和命令参数，可查找 `.jar` 或脚本名称。
+3. 点击目标行的“结束进程”，核对名称和 PID 后确认。App 会重新检查进程身份，发送正常退出请求并刷新列表；尚未退出时会明确提示。
+
+![进程查找：按监听端口定位进程并确认结束](docs/images/process-finder.jpg)
+
+端口模式只查本机 **TCP LISTEN** 服务，不包含 UDP 或连接远端端口的客户端。只能结束当前用户的普通进程，系统进程、其他用户和 App 自身仅展示。不会自动提权或强制结束；受守护程序管理的服务可能再次启动。
+
 ### Docker 与 Nginx
 
 在侧栏 **DevOps** 中选择工具，也可按 `⌘K` 搜索原工具名 `replaceDocker`、`pullAndPush` 或 `nginxfmt`。
@@ -143,7 +171,9 @@ Docker 工具只生成命令，不启动 Docker、不自动拉取或推送镜像
 
 | 功能 | 数据来源与处理 |
 | --- | --- |
+| Cron / JWT / 正则 | 在本机处理；不上传输入、不保存 JWT 或正则文本；Cron 不注册系统任务 |
 | 文本转换与 Nginx | 在本机处理，文件由用户选择导入或保存 |
+| 进程查找 | 读取本机可见进程的元数据、命令参数与 TCP 监听端口；只在确认后结束选定进程，不持久化或上传命令信息 |
 | Port Check | 连接用户指定的 TCP 端点，检查后关闭，不发送应用数据 |
 | Docker 命令 | 在本机生成脚本，执行与仓库认证由用户及 Docker 管理 |
 | Codex 账户额度 | 通过已安装 CLI 的只读 `account/rateLimits/read` 获取；登录凭据留在 Codex 内部 |
@@ -181,15 +211,19 @@ open "build/Yukino Tools.app"
 
 ### 验证范围
 
+v0.5.0 全量 **72 项测试已通过**，包含新增 21 项 Cron / JWT / 正则测试及 5 项进程服务测试，覆盖标准与 Quartz 日期规则、闰年、时区与夏令时、非法输入、JWT 时间边界与数值类型、Unicode 捕获、零宽匹配、替换、数量限制、超时和取消；已通过 Release 构建与原生界面检查。
+
 v0.4.1 的 **46 项测试已通过**，覆盖转换精度、TCP 连接、Codex 日志去重与额度、Docker 命令、Nginx 格式化，以及日报解析、免费榜定位、历史比较、导入备份、HTTP 失败、超时与取消。Docker 测试不访问镜像仓库；TCP 集成测试需允许本机回环监听。
 
 已验证 SwiftPM Release 构建、签名、DMG/ZIP 完整性、真实 Codex 数据和日报生成，以及原生导入、查找、导出与多种窗口布局。27 份历史日报已回归解析，导出与相应源文件逐字节一致。Xcode 工程通过 plist 结构检查，尚未在完整 Xcode 中执行 Build & Run；登录启动未在测试中注册。
+
+进程服务测试覆盖输入校验、IPv4/IPv6 端口解析、真实本机监听、PID 身份变化与权限保护，以及仅结束测试自身创建的子进程。
 
 ### 项目结构
 
 ```text
 Sources/
-  YukinoCore/            # 转换、DevOps、TCP、Codex 与日报服务
+  YukinoCore/            # 转换、Cron、JWT、正则、DevOps、TCP、进程、Codex 与日报服务
   YukinoTools/
     App/                 # 入口、窗口、侧栏、快捷键、开屏
     Core/                # 工具目录、状态、组件、编辑器、用量刷新
