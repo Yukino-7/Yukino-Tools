@@ -12,7 +12,7 @@
 
 </div>
 
-![Yukino Tools：Overview 首页与用量概览](docs/images/overview.jpg)
+![Yukino Tools：Overview 首页与用量概览](docs/images/overview-with-data.jpg)
 
 *Overview 界面预览，图中用量与活动为示例数据。*
 
