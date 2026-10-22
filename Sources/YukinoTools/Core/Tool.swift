@@ -1,11 +1,12 @@
 import SwiftUI
+import YukinoCore
 
 enum AppVersion {
-    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.5.0" }
+    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.6.0" }
 }
 
 enum Tool: String, CaseIterable, Identifiable, Codable {
-    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily, process, cron, jwt, regex
+    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily, process, cron, jwt, regex, localFeatures
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -29,6 +30,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "JWT 查看器"
         case .regex: "正则表达式调试"
         case .process: "进程查找"
+        case .localFeatures: LocalFeatureInfo.title
         }
     }
     var subtitle: String {
@@ -53,6 +55,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "在本机查看 JWT 内容与时间声明，签名状态清晰可见。"
         case .regex: "实时匹配、捕获组与替换预览。"
         case .process: "按名称或 TCP 监听端口查找 Mac 进程，并结束当前用户的进程。"
+        case .localFeatures: LocalFeatureInfo.subtitle
         }
     }
     var symbol: String {
@@ -77,6 +80,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "key.horizontal"
         case .regex: "text.magnifyingglass"
         case .process: "cpu"
+        case .localFeatures: LocalFeatureInfo.symbol
         }
     }
     var group: String {
@@ -87,10 +91,19 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .port, .http, .dns, .process: "Network"
         case .postgres, .redis: "Database"
         case .dockerMirror, .dockerTransfer, .nginx: "DevOps"
+        case .localFeatures: LocalFeatureInfo.group
         }
     }
     static var availableTools: [Tool] { allCases.filter(\.available) }
-    var available: Bool { ![.token, .http, .dns, .postgres, .redis].contains(self) }
+    var available: Bool {
+        ![.token, .http, .dns, .postgres, .redis].contains(self)
+            && (self != .localFeatures || LocalFeatureInfo.available)
+    }
+    static var sidebarGroups: [String] {
+        var groups = ["AI", "Developer", "DevOps", "Network"]
+        if LocalFeatureInfo.available && !groups.contains(LocalFeatureInfo.group) { groups.append(LocalFeatureInfo.group) }
+        return groups
+    }
     func matches(_ query: String) -> Bool {
         query.isEmpty || "\(title) \(subtitle) \(group) \(rawValue) \(aliases)".localizedCaseInsensitiveContains(query)
     }
@@ -104,6 +117,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "json web token bearer header payload 令牌 解码 有效期 过期"
         case .regex: "regexp regular expression 正则 匹配 捕获 替换"
         case .process: "process pid kill terminate 进程 服务 端口 占用 结束 node java redis nginx"
+        case .localFeatures: LocalFeatureInfo.aliases
         default: ""
         }
     }
@@ -121,12 +135,19 @@ struct RecentTool: Codable, Identifiable {
     @Published var favorites: [Tool] = []
     @Published var recent: [RecentTool] = []
     @Published var notice: String?
+    @Published private var sidebarOrder = SidebarOrder()
+    static let favoritesGroup = "Favorites"
     private var noticeTask: Task<Void, Never>?
     private let defaults = UserDefaults.standard
     init() {
+        LocalFeatureInfo.preparePreferences()
         if let data = defaults.data(forKey: "favorites"), let values = try? JSONDecoder().decode([Tool].self, from: data) {
             favorites = values.filter(\.available)
         } else { favorites = [.json, .timestamp, .uuid] }
+        if let data = defaults.data(forKey: "sidebarOrder"), let saved = try? JSONDecoder().decode(SidebarOrder.self, from: data) {
+            sidebarOrder = saved
+            favorites = sidebarTools(in: Self.favoritesGroup)
+        }
         if let data = defaults.data(forKey: "recentTools"), let values = try? JSONDecoder().decode([RecentTool].self, from: data) { recent = values.filter { $0.tool.available } }
         if defaults.object(forKey: "rememberLastTool") == nil || defaults.bool(forKey: "rememberLastTool") {
             if let tool = Tool(rawValue: defaults.string(forKey: "lastTool") ?? "overview"), tool.available {
@@ -152,6 +173,26 @@ struct RecentTool: Codable, Identifiable {
         saveFavorites()
     }
     func saveFavorites() { defaults.set(try? JSONEncoder().encode(favorites), forKey: "favorites") }
+    var sidebarGroups: [String] {
+        sidebarOrder.orderedGroups((favorites.isEmpty ? [] : [Self.favoritesGroup]) + Tool.sidebarGroups)
+    }
+    func sidebarTools(in group: String) -> [Tool] {
+        let tools = group == Self.favoritesGroup ? favorites : Tool.availableTools.filter { $0 != .overview && $0.group == group }
+        return sidebarOrder.orderedItems(in: group, available: tools.map(\.rawValue)).compactMap(Tool.init(rawValue:))
+    }
+    func moveSidebarGroup(_ source: String, to target: String, after: Bool) {
+        guard sidebarOrder.moveGroup(source, to: target, after: after, available: sidebarGroups) else { return }
+        saveSidebarOrder()
+    }
+    func moveSidebarTool(_ tool: Tool, in group: String, to target: Tool, after: Bool) {
+        let available = sidebarTools(in: group).map(\.rawValue)
+        guard sidebarOrder.moveItem(tool.rawValue, in: group, to: target.rawValue, after: after, available: available) else { return }
+        if group == Self.favoritesGroup { favorites = sidebarTools(in: group); saveFavorites() }
+        saveSidebarOrder()
+    }
+    private func saveSidebarOrder() {
+        defaults.set(try? JSONEncoder().encode(sidebarOrder), forKey: "sidebarOrder")
+    }
     func copy(_ text: String) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)

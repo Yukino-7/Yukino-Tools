@@ -16,16 +16,16 @@
 
 ## 下载安装
 
-当前版本：**[v0.5.0](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.5.0)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
+当前版本：**[v0.6.0](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.6.0)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
 
 | 下载 | 安装方式 |
 | --- | --- |
-| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.5.0/Yukino-Tools-0.5.0-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
-| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.5.0/Yukino-Tools-0.5.0-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
-| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.5.0/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
+| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.6.0/Yukino-Tools-0.6.0-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
+| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.6.0/Yukino-Tools-0.6.0-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
+| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.6.0/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
 
 ```sh
-shasum -a 256 Yukino-Tools-0.5.0-macos-arm64.dmg
+shasum -a 256 Yukino-Tools-0.6.0-macos-arm64.dmg
 ```
 
 将输出与校验文件中的同名条目比对；下载 ZIP 时，将命令中的文件名替换为对应 ZIP 文件名。
@@ -53,7 +53,7 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 | DevOps | **Docker Transfer** | 本机与镜像仓库双向迁移的命令生成，支持 host:port、命名空间及分步复制 |
 | DevOps | **Nginx Formatter** | 双栏格式化、结构检查、2/4/8 空格缩进、LF/CRLF、UTF-8/Latin-1 文件导入与另存为 |
 
-支持 `⌘K` 搜索工具、收藏与拖动排序、最近使用记录、窗口位置记忆、系统/浅色/深色外观及登录启动设置。侧栏与搜索只展示已实现的工具。
+支持 `⌘K` 搜索工具、收藏与拖动排序、最近使用记录、窗口位置记忆、系统/浅色/深色外观及登录启动设置。侧栏支持跟手拖动、浮层与空位预览：小菜单只能在所属板块内排序，拖动板块标题可整体调整位置，其他菜单平滑让位，松手后自动保存；筛选期间暂停拖动。侧栏与搜索只展示已实现的工具。
 
 启动时播放约 1.8 秒的「工具汇聚」动画，每次进程启动播放一次；可按 `Esc` 跳过，也支持系统“减少动态效果”。
 
@@ -190,28 +190,30 @@ Docker 工具只生成命令，不启动 Docker、不自动拉取或推送镜像
 
 ### 环境与构建
 
-需要 **macOS 14+** 和 **Swift 6.0+**。App 使用 SwiftUI、AppKit 与 Swift Charts，无 WebView、无第三方包依赖。安装 Apple Command Line Tools 后即可使用脚本构建。
+需要 **macOS 14+** 和 **Swift 6.0+**。公开版 App 使用 SwiftUI、AppKit 与 Swift Charts，无第三方包依赖。安装 Apple Command Line Tools 后即可使用脚本构建。
 
 ```sh
 git clone https://github.com/Yukino-7/Yukino-Tools.git
 cd Yukino-Tools
 ./scripts/build-app.sh
-open "build/Yukino Tools.app"
+open "build/public/Yukino Tools.app"
 ```
 
 | 命令 | 用途 |
 | --- | --- |
-| `./scripts/build-app.sh` | 构建当前机器架构的 Release `.app`，输出到 `build/`，自动执行 ad hoc 签名 |
+| `./scripts/build-app.sh` | 构建当前机器架构的公开 Release `.app`，输出到 `build/public/`，自动执行 ad hoc 签名及公开版检查 |
 | `./scripts/build-app.sh debug` | 构建 Debug 应用 |
 | `./scripts/test.sh` | 运行 Swift Testing 测试 |
 | `./scripts/package-release.sh` | 生成 ZIP、DMG、`SHA256SUMS.txt`，输出到 `build/releases/v<version>/` |
 | `python3 scripts/generate-xcode-project.py` | 新增或移动源文件后，重新生成 Xcode 工程 |
 
+公开构建和发布始终排除本地扩展，个人版本使用独立的构建目录与显式参数，见 [本地与公开构建](docs/local-builds.md)。
+
 使用 Xcode 时，打开 `YukinoTools.xcodeproj`，选择 **YukinoTools** scheme 和 **My Mac** 后 Build & Run。要求 Xcode 16+，工程引用同目录 Swift Package，无远程依赖，也不需要开发者账户。
 
 ### 验证范围
 
-v0.5.0 全量 **72 项测试已通过**，包含新增 21 项 Cron / JWT / 正则测试及 5 项进程服务测试，覆盖标准与 Quartz 日期规则、闰年、时区与夏令时、非法输入、JWT 时间边界与数值类型、Unicode 捕获、零宽匹配、替换、数量限制、超时和取消；已通过 Release 构建与原生界面检查。
+v0.6.0 全量 **75 项测试已通过**，覆盖标准与 Quartz 日期规则、闰年、时区与夏令时、非法输入、JWT 时间边界与数值类型、Unicode 捕获、零宽匹配、替换、数量限制、超时和取消；另覆盖菜单分组边界、排序持久化和隐藏条目恢复；已通过 Release 构建与原生界面检查。
 
 v0.4.1 的 **46 项测试已通过**，覆盖转换精度、TCP 连接、Codex 日志去重与额度、Docker 命令、Nginx 格式化，以及日报解析、免费榜定位、历史比较、导入备份、HTTP 失败、超时与取消。Docker 测试不访问镜像仓库；TCP 集成测试需允许本机回环监听。
 

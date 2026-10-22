@@ -3,8 +3,10 @@ set -euo pipefail
 export LC_ALL=C
 cd "$(dirname "$0")/.."
 
-./scripts/build-app.sh release
-app_directory="$PWD/build/Yukino Tools.app"
+export YUKINO_PUBLIC_RELEASE=1 YUKINO_LOCAL_FEATURES=0
+./scripts/build-app.sh release public
+app_directory="$PWD/build/public/Yukino Tools.app"
+./scripts/verify-public-app.sh "$app_directory"
 version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_directory/Contents/Info.plist")"
 architecture="$(lipo -archs "$app_directory/Contents/MacOS/YukinoTools")"
 if [[ "$architecture" == *" "* ]]; then architecture="universal"; fi

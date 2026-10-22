@@ -4,3 +4,9 @@ build/
 *.xcuserstate
 xcuserdata/
 .swiftpm/
+
+# Personal features and their documentation must never be committed or published.
+Sources/*/LocalFeatures/
+Tests/*/LocalFeatures/
+docs/local-features/
+docs/images/local-features/

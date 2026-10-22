@@ -5,9 +5,11 @@ struct YukinoToolsApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var state = AppState()
     @StateObject private var usage = CodexUsageStore()
+    @StateObject private var localFeatures = LocalFeatures()
     @AppStorage("appearance") private var appearance = "system"
     @AppStorage("showMenuBar") private var showMenuBar = true
     @AppStorage("menuBarUsageStyle") private var menuBarUsageStyle = MenuBarUsageStyle.doubleRing.rawValue
+    @Environment(\.openWindow) private var openWindow
     @State private var launchComplete = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var scheme: ColorScheme? { appearance == "dark" ? .dark : appearance == "light" ? .light : nil }
@@ -25,10 +27,13 @@ struct YukinoToolsApp: App {
                     }.transition(.opacity)
                 }
             }
-                .environmentObject(state).environmentObject(usage).preferredColorScheme(scheme)
+                .environmentObject(state).environmentObject(usage).environmentObject(localFeatures).preferredColorScheme(scheme)
                 .frame(minWidth: 1000, minHeight: 650)
                 .background(WindowRestorer())
-                .task { usage.start() }
+                .task {
+                    usage.start()
+                    localFeatures.start(openWindow: openWindow)
+                }
         }
         .defaultSize(width: 1280, height: 800)
         .windowResizability(.contentMinSize)
@@ -43,6 +48,9 @@ struct YukinoToolsApp: App {
                 Button("Find…") { findInCurrentTool() }.keyboardShortcut("f")
             }
         }
+        #if YUKINO_LOCAL_FEATURES
+        LocalFeatureWindows(features: localFeatures, scheme: scheme)
+        #endif
         Settings {
             SettingsView().environmentObject(state).environmentObject(usage).preferredColorScheme(scheme)
         }

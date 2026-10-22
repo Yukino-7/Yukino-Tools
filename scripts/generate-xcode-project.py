@@ -23,7 +23,8 @@ def obj(name, isa, fields):
 def array(values):
     return '(' + ', '.join(values) + ')'
 
-sources = sorted((root / 'Sources/YukinoTools').rglob('*.swift'))
+# The shared Xcode project is always public. Private local builds use SwiftPM.
+sources = sorted(path for path in (root / 'Sources/YukinoTools').rglob('*.swift') if 'LocalFeatures' not in path.parts)
 groups = {}
 build_files = []
 for source in sources:
