@@ -12,7 +12,7 @@
 
 </div>
 
-![Yukino Tools：JSON 格式化与双栏编辑](docs/images/json-formatter.jpg)
+![Yukino Tools：Overview 首页与用量概览](docs/images/overview.jpg)
 
 ## 下载安装
 
