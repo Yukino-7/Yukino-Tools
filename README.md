@@ -16,16 +16,16 @@
 
 ## 下载安装
 
-当前版本：**[v0.6.0](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.6.0)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
+当前版本：**[v0.7.0](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.7.0)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
 
 | 下载 | 安装方式 |
 | --- | --- |
-| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.6.0/Yukino-Tools-0.6.0-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
-| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.6.0/Yukino-Tools-0.6.0-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
-| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.6.0/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
+| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.7.0/Yukino-Tools-0.7.0-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
+| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.7.0/Yukino-Tools-0.7.0-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
+| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.7.0/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
 
 ```sh
-shasum -a 256 Yukino-Tools-0.6.0-macos-arm64.dmg
+shasum -a 256 Yukino-Tools-0.7.0-macos-arm64.dmg
 ```
 
 将输出与校验文件中的同名条目比对；下载 ZIP 时，将命令中的文件名替换为对应 ZIP 文件名。
@@ -48,6 +48,7 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 | Developer | **JWT 查看器** | 本机解码 Header / Payload、iat / nbf / exp、有效期倒计时，明确显示签名未验证 |
 | Developer | **正则表达式调试** | ICU 实时匹配高亮、捕获组、i/m/s 选项与全局替换预览，支持超时与结果数量限制 |
 | Network | **进程查找** | 按名称或 TCP 监听端口定位本机进程，查看 PID、命令、归属与端口，确认后结束当前用户的进程 |
+| Network | **cURL 生成与转换** | 可视化生成请求命令，检查并互转 Linux / macOS、Windows CMD、PowerShell 格式，支持复制与脚本导出 |
 | Network | **Port Check** | TCP 连通性、连接耗时、超时设置与最近端点 |
 | DevOps | **Docker Mirror** | 生成镜像代理拉取及恢复原标签的命令，支持平台、sudo 和临时标签清理 |
 | DevOps | **Docker Transfer** | 本机与镜像仓库双向迁移的命令生成，支持 host:port、命名空间及分步复制 |
@@ -58,6 +59,20 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 启动时播放约 1.8 秒的「工具汇聚」动画，每次进程启动播放一次；可按 `Esc` 跳过，也支持系统“减少动态效果”。
 
 ## 使用指南
+
+### cURL 生成与转换
+
+在 **Network → cURL 生成与转换** 打开，或按 `⌘K` 搜索 `curl`、`CMD`、`PowerShell`。此工具已包含在 v0.7.0 安装包中。
+
+- **填写请求**：选择 HTTP 方法，填写 URL、查询参数、请求头和认证。支持 JSON、纯文本、URL 编码表单与 Multipart 文本字段，保留重复参数；可调整重定向、响应头、调试输出和超时。
+- **粘贴并转换**：选择原命令所用的终端，粘贴一条 `curl` / `curl.exe` 命令后自动检查并转换，无需点击按钮；修改内容、切换来源或目标终端也会自动更新，连续输入会取消旧解析。支持常见短选项组合、续行、请求体、认证及文件引用；未知选项、变量、管道、重定向、多请求和有歧义的输入会停止转换，不静默丢弃参数。仅解析文本，不展开变量或读取引用文件。
+- **目标格式**：Linux / macOS 使用 bash / zsh 引号与续行；Windows CMD 默认输出可读的原生 `curl.exe` 命令，每行展示一个选项及其值。JSON 请求体在多行排版时使用 `^` 续行展开，在单行模式下自动压缩多行 JSON，原输入保留；其他换行、`%`、`!` 等内容会提示处理方式，不会自动生成编码命令。需要完整保留特殊参数时，可显式选择“PowerShell 兼容封装”；PowerShell 采用兼容 Windows PowerShell 5.1 / 7 的 `curl.exe` 进程参数形式，保留 JSON 引号。CMD 命令限约 8 KB，较长请求可切换 PowerShell。
+- **JSON 请求体**：多行排版时，直接在命令预览中的请求体参数内自动缩进展开 JSON，无额外预览模块；复制和导出使用相同排版。保留数字精度、字段顺序和转义文本，调整 JSON 结构之间的空白；填写请求时也可美化编辑框中的 JSON。单行模式和显式 CMD PowerShell 编码封装维持各自格式。
+- **复制与导出**：实时预览、单行 / 多行切换，一键复制；导出 `.sh`、`.cmd` 或 `.ps1`。PowerShell 脚本使用 UTF-8 BOM 兼容 5.1，CMD 脚本包含批处理所需的初始化。
+
+工具只生成和检查命令，不执行请求。请求内容与凭据不写入历史或设置；复制和导出会包含用户填写的凭据。语法检查不代表服务端已验证请求，跨系统文件路径需要自行检查。Linux 格式使用 bash / zsh 的 ANSI-C 引号语法，不面向所有 POSIX sh 实现。
+
+参考：[curl 官方手册](https://curl.se/docs/manpage.html)、[CMD 文档](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmd)、[PowerShell 参数解析](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing)。Windows 格式已覆盖解析与参数往返测试，当前开发环境为 macOS，尚未在原生 Windows 终端执行验证。
 
 ### Cron、JWT 与正则
 
@@ -171,6 +186,7 @@ Docker 工具只生成命令，不启动 Docker、不自动拉取或推送镜像
 
 | 功能 | 数据来源与处理 |
 | --- | --- |
+| cURL 生成与转换 | 在本机生成与解析命令，不发送请求、不读取导入命令引用文件；不保存请求内容或认证凭据 |
 | Cron / JWT / 正则 | 在本机处理；不上传输入、不保存 JWT 或正则文本；Cron 不注册系统任务 |
 | 文本转换与 Nginx | 在本机处理，文件由用户选择导入或保存 |
 | 进程查找 | 读取本机可见进程的元数据、命令参数与 TCP 监听端口；只在确认后结束选定进程，不持久化或上传命令信息 |
@@ -212,6 +228,8 @@ open "build/public/Yukino Tools.app"
 使用 Xcode 时，打开 `YukinoTools.xcodeproj`，选择 **YukinoTools** scheme 和 **My Mac** 后 Build & Run。要求 Xcode 16+，工程引用同目录 Swift Package，无远程依赖，也不需要开发者账户。
 
 ### 验证范围
+
+v0.7.0 新增 28 项 cURL 回归测试，公开版全量 **103 项通过**，覆盖 URL 编码、重复参数、请求体保真与命令内 JSON 美化、认证冲突、bash / zsh 实际参数、Windows 参数往返、导入语法检查和本机 HTTP 请求核对。
 
 v0.6.0 全量 **75 项测试已通过**，覆盖标准与 Quartz 日期规则、闰年、时区与夏令时、非法输入、JWT 时间边界与数值类型、Unicode 捕获、零宽匹配、替换、数量限制、超时和取消；另覆盖菜单分组边界、排序持久化和隐藏条目恢复；已通过 Release 构建与原生界面检查。
 

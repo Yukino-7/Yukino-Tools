@@ -23,7 +23,7 @@ struct MenuBarView: View {
         Button("Codex Usage") { open(.codex) }
         Button("OpenRouter 日报") { open(.openrouterDaily) }
         LocalFeatureMenu()
-        ForEach([Tool.json, .timestamp, .uuid, .nginx, .dockerTransfer, .process, .cron, .jwt, .regex]) { tool in
+        ForEach([Tool.json, .timestamp, .uuid, .nginx, .dockerTransfer, .process, .cron, .jwt, .regex, .curl]) { tool in
             Button { open(tool) } label: { Label(tool.title, systemImage: tool.symbol) }
         }
         Divider()

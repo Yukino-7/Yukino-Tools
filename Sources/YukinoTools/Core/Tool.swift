@@ -2,11 +2,11 @@ import SwiftUI
 import YukinoCore
 
 enum AppVersion {
-    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.6.0" }
+    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.7.0" }
 }
 
 enum Tool: String, CaseIterable, Identifiable, Codable {
-    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily, process, cron, jwt, regex, localFeatures
+    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily, process, cron, jwt, regex, curl, localFeatures
     var id: String { rawValue }
     var title: String {
         switch self {
@@ -30,6 +30,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "JWT 查看器"
         case .regex: "正则表达式调试"
         case .process: "进程查找"
+        case .curl: "cURL 生成与转换"
         case .localFeatures: LocalFeatureInfo.title
         }
     }
@@ -55,6 +56,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "在本机查看 JWT 内容与时间声明，签名状态清晰可见。"
         case .regex: "实时匹配、捕获组与替换预览。"
         case .process: "按名称或 TCP 监听端口查找 Mac 进程，并结束当前用户的进程。"
+        case .curl: "填写请求生成命令，检查并转换 Linux、CMD 与 PowerShell 版本。"
         case .localFeatures: LocalFeatureInfo.subtitle
         }
     }
@@ -80,6 +82,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "key.horizontal"
         case .regex: "text.magnifyingglass"
         case .process: "cpu"
+        case .curl: "terminal.fill"
         case .localFeatures: LocalFeatureInfo.symbol
         }
     }
@@ -88,7 +91,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .overview: "Workspace"
         case .codex, .token, .openrouterDaily: "AI"
         case .json, .base64, .timestamp, .uuid, .cron, .jwt, .regex: "Developer"
-        case .port, .http, .dns, .process: "Network"
+        case .port, .http, .dns, .process, .curl: "Network"
         case .postgres, .redis: "Database"
         case .dockerMirror, .dockerTransfer, .nginx: "DevOps"
         case .localFeatures: LocalFeatureInfo.group
@@ -117,6 +120,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "json web token bearer header payload 令牌 解码 有效期 过期"
         case .regex: "regexp regular expression 正则 匹配 捕获 替换"
         case .process: "process pid kill terminate 进程 服务 端口 占用 结束 node java redis nginx"
+        case .curl: "curl cURL http request command cmd powershell linux bash 请求 命令 生成 转换 接口"
         case .localFeatures: LocalFeatureInfo.aliases
         default: ""
         }

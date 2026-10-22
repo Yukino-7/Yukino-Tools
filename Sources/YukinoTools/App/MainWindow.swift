@@ -22,6 +22,7 @@ struct MainWindow: View {
                 case .timestamp: TimestampView()
                 case .uuid: UUIDView()
                 case .port: PortCheckView()
+                case .curl: CurlView()
                 case .process: ProcessFinderView()
                 case .cron: CronView()
                 case .jwt: JWTView()
