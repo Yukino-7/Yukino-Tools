@@ -14,6 +14,8 @@
 
 ![Yukino Tools：Overview 首页与用量概览](docs/images/overview.jpg)
 
+*Overview 界面预览，图中用量与活动为示例数据。*
+
 ## 下载安装
 
 当前版本：**[v0.7.0](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.7.0)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
