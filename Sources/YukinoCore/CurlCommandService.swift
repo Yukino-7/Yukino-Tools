@@ -42,6 +42,9 @@ public struct CurlCommandPlan: Equatable, Sendable {
     public let arguments: [String]
     public let warnings: [String]
     public let containsCredentials: Bool
+    public init(url: String, arguments: [String], warnings: [String], containsCredentials: Bool) {
+        self.url = url; self.arguments = arguments; self.warnings = warnings; self.containsCredentials = containsCredentials
+    }
     public func command(multiline: Bool = true) -> String {
         let pieces = arguments.map(CurlCommandService.shellQuote)
         return multiline ? "curl \\\n  " + pieces.joined(separator: " \\\n  ") : (["curl"] + pieces).joined(separator: " ")

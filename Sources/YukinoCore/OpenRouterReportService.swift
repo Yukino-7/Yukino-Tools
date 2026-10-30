@@ -100,6 +100,50 @@ public enum OpenRouterReportService {
     }
 
     public static func parseTop5(_ html: String) -> [WeeklyModel] {
+        let embedded = parseEmbeddedTop5(html)
+        return embedded.isEmpty ? parseTableTop5(html) : embedded
+    }
+
+    // Discover also sends initialView.lanes through Next.js Flight. Decode JSON only;
+    // never execute page scripts. This survives changes to the visible card/table markup.
+    private static func parseEmbeddedTop5(_ html: String) -> [WeeklyModel] {
+        guard let regex = try? NSRegularExpression(pattern: #"(?is)<script\b[^>]*>\s*self\.__next_f\.push\((.*?)\)\s*;?\s*</script\s*>"#) else { return [] }
+        let source = html as NSString
+        var flight = ""
+        for match in regex.matches(in: html, range: NSRange(html.startIndex..., in: html)) {
+            let data = Data(source.substring(with: match.range(at: 1)).utf8)
+            guard let chunk = try? JSONSerialization.jsonObject(with: data) as? [Any], chunk.count == 2,
+                  let kind = chunk[0] as? Int, kind == 1, let payload = chunk[1] as? String else { continue }
+            flight += payload
+        }
+        var candidates: [[String: Any]] = []
+        for line in flight.split(separator: "\n") {
+            guard let colon = line.firstIndex(of: ":"),
+                  let frame = try? JSONSerialization.jsonObject(with: Data(line[line.index(after: colon)...].utf8)) as? [Any],
+                  frame.count == 4, let props = frame[3] as? [String: Any],
+                  let view = props["initialView"] as? [String: Any], let lanes = view["lanes"] as? [[String: Any]] else { continue }
+            candidates += lanes.filter { ($0["id"] as? String) == "free" && ($0["title"] as? String)?.lowercased() == "free models" }
+        }
+        guard candidates.count == 1, let models = candidates[0]["models"] as? [[String: Any]], models.count >= 5 else { return [] }
+        var rows: [WeeklyModel] = []; var seen: Set<String> = []
+        for model in models.prefix(5) {
+            guard let name = model["name"] as? String, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  let href = model["href"] as? String, href.hasPrefix("/"),
+                  let stats = model["stats"] as? [[String: String]] else { return [] }
+            let id = String(href.dropFirst())
+            let tokens = stats.filter { $0["label"] == "Tokens/wk" }
+            let contexts = stats.filter { $0["label"] == "Context" }
+            guard id.range(of: #"^~?[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.:-]*$"#, options: .regularExpression) != nil,
+                  seen.insert(id).inserted, tokens.count == 1, contexts.count == 1,
+                  let display = tokens[0]["value"], captures(display, #"^\s*([\d.]+)\s*([TBMK])\s*$"#) != nil,
+                  let amount = tokenValue(display), amount.isFinite, amount > 0,
+                  let context = contexts[0]["value"], context.range(of: #"^\d+(?:\.\d+)?\s*[KM]?$"#, options: [.regularExpression, .caseInsensitive]) != nil else { return [] }
+            rows.append(WeeklyModel(rank: rows.count + 1, name: replacing(name, #"(?i)\s*\(free\)\s*$"#, ""), provider: String(id.split(separator: "/")[0]), modelID: id, tokens: amount, context: context.replacingOccurrences(of: " ", with: "")))
+        }
+        return rows
+    }
+
+    private static func parseTableTop5(_ html: String) -> [WeeklyModel] {
         let cleaned = replacing(html, #"(?is)<(script|style|aside|nav|header|footer)\b[^>]*>.*?</\1>"#, " ")
         func text(_ html: String) -> String {
             replacing(decodeEntities(replacing(html, #"<[^>]+>"#, " ")), #"\s+"#, " ").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -152,12 +196,14 @@ public enum OpenRouterReportService {
         } else if !errors.contains(where: { $0.hasPrefix("模型接口") }) { snapshot.warnings.append("模型接口数据不可用") }
         if let html {
             snapshot.top5 = parseTop5(html)
-            if !snapshot.top5.isEmpty { snapshot.rankingParserVersion = 2 }
-            if snapshot.top5.isEmpty { snapshot.warnings.append("周榜页面结构变化或数据不足五条，跳过 TOP 5") }
+            if !snapshot.top5.isEmpty { snapshot.rankingParserVersion = 3 }
+            if snapshot.top5.isEmpty { snapshot.warnings.append("未能识别官网免费周榜（页面结构变化、验证页或数据不足五条），已尝试页面表格及内嵌数据；可稍后更新日报重试") }
         } else if !errors.contains(where: { $0.hasPrefix("周榜页面") }) { snapshot.warnings.append("周榜页面数据不可用") }
         guard snapshot.models != nil || !snapshot.top5.isEmpty else { throw ToolError.invalid("日报数据源不可用，未保存空报告。\n" + snapshot.warnings.joined(separator: "\n")) }
         let grouped = Dictionary(grouping: snapshot.models ?? [], by: { canonical($0.name) })
         for index in snapshot.top5.indices {
+            // Embedded data supplies the official route, even when display names are ambiguous.
+            if snapshot.top5[index].modelID != nil { continue }
             if let matches = grouped[canonical(snapshot.top5[index].name)], matches.count == 1 {
                 snapshot.top5[index].modelID = matches[0].id; snapshot.top5[index].provider = String(matches[0].id.split(separator: "/")[0])
             }
@@ -255,7 +301,7 @@ public enum OpenRouterReportService {
     }
     private static func validRankingBaseline(_ snapshot: DailySnapshot) -> Bool {
         guard snapshot.top5.count == 5 else { return false }
-        if snapshot.rankingParserVersion == 2 { return true }
+        if [2, 3].contains(snapshot.rankingParserVersion) { return true }
         // Old snapshots may contain the alias leaderboard. Only trust independently matched free models.
         guard let models = snapshot.models else { return false }
         return snapshot.top5.allSatisfy { row in

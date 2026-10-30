@@ -1,5 +1,6 @@
 import Foundation
 import CoreFoundation
+import CZstd
 
 /// Reads only metadata and token counters. Conversation text is neither stored nor exposed.
 public struct CodexLogParser {
@@ -129,6 +130,15 @@ public actor CodexLogService {
         var pending = Data()
         var parser = CodexLogParser()
         var archived: Bool
+
+        mutating func ingest(_ chunk: Data) {
+            pending.append(chunk)
+            while let newline = pending.firstIndex(of: 10) {
+                let line = Data(pending[..<newline])
+                pending.removeSubrange(...newline)
+                parser.ingest(line)
+            }
+        }
     }
     private var cache: [String: FileCache] = [:]
     private var rootPath: String?
@@ -149,8 +159,9 @@ public actor CodexLogService {
             guard let enumerator = manager.enumerator(at: directory, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles], errorHandler: { _, _ in unreadable += 1; return true }) else {
                 unreadable += 1; continue
             }
-            for case let file as URL in enumerator where file.pathExtension == "jsonl" {
+            for case let file as URL in enumerator where file.pathExtension == "jsonl" || file.lastPathComponent.hasSuffix(".jsonl.zst") {
                 guard (try? file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true else { continue }
+                let compressed = file.pathExtension == "zst"
                 present.insert(file.path)
                 do {
                     let attributes = try manager.attributesOfItem(atPath: file.path)
@@ -158,21 +169,28 @@ public actor CodexLogService {
                     let inode = (attributes[.systemFileNumber] as? NSNumber)?.uint64Value ?? 0
                     let modified = attributes[.modificationDate] as? Date ?? .distantPast
                     var entry = cache[file.path] ?? FileCache(inode: inode, modified: modified, archived: folder == "archived_sessions")
-                    if entry.inode != inode || size < entry.offset || (size == entry.offset && modified != entry.modified) {
+                    let compressedNeedsRead = compressed && (cache[file.path] == nil || entry.inode != inode
+                        || size != entry.offset || modified != entry.modified)
+                    if entry.inode != inode || size < entry.offset || (size == entry.offset && modified != entry.modified)
+                        || (compressed && (size != entry.offset || modified != entry.modified)) {
                         entry = FileCache(inode: inode, modified: modified, archived: folder == "archived_sessions")
                     }
-                    if size > entry.offset {
+                    if compressedNeedsRead {
+                        // Compressed files are immutable snapshots. Decode a changed file from
+                        // the beginning and commit its counters only after checksum/EOF validation.
+                        try Self.readCompressed(file) { entry.ingest($0) }
+                        if !entry.pending.isEmpty {
+                            entry.parser.ingest(entry.pending)
+                            entry.pending.removeAll()
+                        }
+                        entry.offset = size
+                    } else if !compressed && size > entry.offset {
                         let handle = try FileHandle(forReadingFrom: file)
                         defer { try? handle.close() }
                         try handle.seek(toOffset: entry.offset)
                         while let chunk = try handle.read(upToCount: 64 * 1024), !chunk.isEmpty {
                             entry.offset += UInt64(chunk.count)
-                            entry.pending.append(chunk)
-                            while let newline = entry.pending.firstIndex(of: 10) {
-                                let line = Data(entry.pending[..<newline])
-                                entry.pending.removeSubrange(...newline)
-                                entry.parser.ingest(line)
-                            }
+                            entry.ingest(chunk)
                         }
                     }
                     entry.modified = modified
@@ -218,5 +236,48 @@ public actor CodexLogService {
             events: events.sorted { $0.date < $1.date },
             latestLimits: cache.values.compactMap { $0.parser.latestLimits }.max { $0.capturedAt < $1.capturedAt },
             scannedFiles: cache.count, malformedLines: cache.values.reduce(0) { $0 + $1.parser.malformedLines }, unreadableFiles: unreadable)
+    }
+
+    /// Stream in memory without expanding archives on disk or requiring Homebrew.
+    private static func readCompressed(_ file: URL, consume: (Data) throws -> Void) throws {
+        guard let decoder = ZSTD_createDStream() else {
+            throw ToolError.invalid("Could not initialize compressed Codex log reader.")
+        }
+        defer { ZSTD_freeDStream(decoder) }
+        // Bound the decoder's history window to 128 MiB, independent of archive size.
+        guard ZSTD_isError(ZSTD_DCtx_setParameter(decoder, ZSTD_d_windowLogMax, 27)) == 0 else {
+            throw ToolError.invalid("Could not configure compressed Codex log reader.")
+        }
+        let handle = try FileHandle(forReadingFrom: file)
+        defer { try? handle.close() }
+        var output = [UInt8](repeating: 0, count: 64 * 1024)
+        var remaining = 1
+        while let chunk = try handle.read(upToCount: 64 * 1024), !chunk.isEmpty {
+            try chunk.withUnsafeBytes { source in
+                var input = ZSTD_inBuffer(src: source.baseAddress, size: source.count, pos: 0)
+                var produced: Int
+                repeat {
+                    let previousPosition = input.pos
+                    produced = try output.withUnsafeMutableBytes { destination in
+                        var buffer = ZSTD_outBuffer(dst: destination.baseAddress, size: destination.count, pos: 0)
+                        remaining = ZSTD_decompressStream(decoder, &buffer, &input)
+                        guard ZSTD_isError(remaining) == 0 else {
+                            throw ToolError.invalid("Compressed Codex log is invalid or damaged.")
+                        }
+                        if buffer.pos > 0 { try consume(Data(destination.prefix(buffer.pos))) }
+                        return buffer.pos
+                    }
+                    if input.pos == previousPosition && produced == 0 {
+                        guard input.pos == input.size else {
+                            throw ToolError.invalid("Compressed Codex log could not be decoded.")
+                        }
+                        break
+                    }
+                } while input.pos < input.size || (produced == output.count && remaining != 0)
+            }
+        }
+        guard remaining == 0 else {
+            throw ToolError.invalid("Compressed Codex log is empty or truncated.")
+        }
     }
 }

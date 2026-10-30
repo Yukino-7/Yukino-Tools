@@ -20,7 +20,8 @@ let package = Package(
         .executable(name: "YukinoTools", targets: ["YukinoTools"])
     ],
     targets: [
-        .target(name: "YukinoCore", exclude: featureExclusions("Sources/YukinoCore"), swiftSettings: featureSettings),
+        .target(name: "CZstd", exclude: ["LICENSE", "README.md"]),
+        .target(name: "YukinoCore", dependencies: ["CZstd"], exclude: featureExclusions("Sources/YukinoCore"), swiftSettings: featureSettings),
         .executableTarget(name: "YukinoTools", dependencies: ["YukinoCore"], exclude: featureExclusions("Sources/YukinoTools"), swiftSettings: featureSettings),
         .testTarget(name: "YukinoCoreTests", dependencies: ["YukinoCore"], exclude: featureExclusions("Tests/YukinoCoreTests"), swiftSettings: featureSettings)
     ],

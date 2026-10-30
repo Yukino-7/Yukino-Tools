@@ -53,7 +53,11 @@ import YukinoCore
                 await refresh(select: entry.dateKey)
                 // Replacing the selected date does not trigger task(id:), so reload explicitly.
                 await loadSelected()
-                notice = report.snapshot.warnings.isEmpty ? "今日日报已生成" : "日报已保存，数据提示见正文"
+                if report.snapshot.top5.isEmpty {
+                    notice = "日报已保存，免费周榜暂不可用；详见正文，可稍后更新重试"
+                } else {
+                    notice = "日报已保存，已获取免费周榜 TOP \(report.snapshot.top5.count)" + (report.snapshot.warnings.isEmpty ? "" : "；数据提示见正文")
+                }
             } catch is CancellationError { notice = "已取消生成" }
             catch { self.error = error.localizedDescription }
         }

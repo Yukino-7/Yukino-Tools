@@ -7,11 +7,13 @@ struct YukinoToolsApp: App {
     @StateObject private var usage = CodexUsageStore()
     @StateObject private var localFeatures = LocalFeatures()
     @AppStorage("appearance") private var appearance = "system"
+    @AppStorage("themeColor") private var themeColor = AppTheme.native.rawValue
     @AppStorage("showMenuBar") private var showMenuBar = true
     @AppStorage("menuBarUsageStyle") private var menuBarUsageStyle = MenuBarUsageStyle.doubleRing.rawValue
     @Environment(\.openWindow) private var openWindow
     @State private var launchComplete = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private var theme: AppTheme { AppTheme(rawValue: themeColor) ?? .native }
     private var scheme: ColorScheme? { appearance == "dark" ? .dark : appearance == "light" ? .light : nil }
 
     var body: some Scene {
@@ -27,7 +29,7 @@ struct YukinoToolsApp: App {
                     }.transition(.opacity)
                 }
             }
-                .environmentObject(state).environmentObject(usage).environmentObject(localFeatures).preferredColorScheme(scheme)
+                .environmentObject(state).environmentObject(usage).environmentObject(localFeatures).preferredColorScheme(scheme).tint(theme.accent).accentColor(theme.accent)
                 .frame(minWidth: 1000, minHeight: 650)
                 .background(WindowRestorer())
                 .task {
@@ -53,18 +55,20 @@ struct YukinoToolsApp: App {
         #endif
         Settings {
             SettingsView().environmentObject(state).environmentObject(usage).preferredColorScheme(scheme)
+                .tint(theme.accent).accentColor(theme.accent)
         }
         MenuBarExtra(isInserted: $showMenuBar) {
-            MenuBarView().environmentObject(state).environmentObject(usage)
+            MenuBarView().environmentObject(state).environmentObject(usage).environmentObject(localFeatures)
+                .preferredColorScheme(scheme)
         } label: {
             MenuBarUsageLabel(style: MenuBarUsageStyle(rawValue: menuBarUsageStyle) ?? .doubleRing,
                               limits: usage.limits, recorded: usage.limitIsRecorded)
                 .task { usage.start() }
-        }
+        }.menuBarExtraStyle(.window)
     }
 
     private func findInCurrentTool() {
-        guard [.json, .base64, .uuid, .nginx, .dockerMirror, .dockerTransfer, .openrouterDaily].contains(state.selected), let window = NSApp.keyWindow else {
+        guard [.aiDebug, .mcp, .curl, .json, .base64, .uuid, .nginx, .dockerMirror, .dockerTransfer, .openrouterDaily].contains(state.selected), let window = NSApp.keyWindow else {
             state.paletteVisible = true
             return
         }

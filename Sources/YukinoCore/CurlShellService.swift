@@ -1,6 +1,6 @@
 import Foundation
 
-public enum CurlShell: String, CaseIterable, Sendable {
+public enum CurlShell: String, CaseIterable, Codable, Sendable {
     case bash = "Linux / macOS（bash / zsh）"
     case cmd = "Windows CMD"
     case powershell = "Windows PowerShell（5.1 / 7）"

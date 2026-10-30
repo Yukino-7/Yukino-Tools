@@ -2,15 +2,76 @@ import SwiftUI
 import YukinoCore
 
 enum AppVersion {
-    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.7.0" }
+    static var current: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.8.0" }
 }
 
-enum Tool: String, CaseIterable, Identifiable, Codable {
-    case overview, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily, process, cron, jwt, regex, curl, localFeatures
+enum Tool: RawRepresentable, CaseIterable, Identifiable, Codable, Hashable {
+    case overview, workPilot, aiDebug, mcp, codex, token, json, base64, timestamp, uuid, port, http, dns, postgres, redis, dockerMirror, dockerTransfer, nginx, openrouterDaily, process, cron, jwt, regex, curl
+    case localFeature(String)
+    static var allCases: [Tool] {
+        [.overview, .workPilot, .aiDebug, .mcp, .codex, .token, .json, .base64, .timestamp, .uuid, .port, .http, .dns, .postgres, .redis, .dockerMirror, .dockerTransfer, .nginx, .openrouterDaily, .process, .cron, .jwt, .regex, .curl]
+            + LocalFeatureInfo.tools.map { .localFeature($0.id) }
+    }
+    var rawValue: String {
+        switch self {
+        case .overview: "overview"
+        case .workPilot: "workPilot"
+        case .aiDebug: "aiDebug"
+        case .mcp: "mcp"
+        case .codex: "codex"
+        case .token: "token"
+        case .json: "json"
+        case .base64: "base64"
+        case .timestamp: "timestamp"
+        case .uuid: "uuid"
+        case .port: "port"
+        case .http: "http"
+        case .dns: "dns"
+        case .postgres: "postgres"
+        case .redis: "redis"
+        case .dockerMirror: "dockerMirror"
+        case .dockerTransfer: "dockerTransfer"
+        case .nginx: "nginx"
+        case .openrouterDaily: "openrouterDaily"
+        case .process: "process"
+        case .cron: "cron"
+        case .jwt: "jwt"
+        case .regex: "regex"
+        case .curl: "curl"
+        case let .localFeature(id): "local:\(id)"
+        }
+    }
+    init?(rawValue: String) {
+        if rawValue.hasPrefix("local:"), rawValue.count > "local:".count {
+            self = .localFeature(String(rawValue.dropFirst("local:".count)))
+            return
+        }
+        guard let tool = Self.allCases.first(where: { $0.rawValue == rawValue }) else { return nil }
+        self = tool
+    }
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self)
+        guard let tool = Tool(rawValue: value) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unknown tool identifier")
+        }
+        self = tool
+    }
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+    private var localDescriptor: LocalToolDescriptor? {
+        guard case let .localFeature(id) = self else { return nil }
+        return LocalFeatureInfo.tools.first { $0.id == id }
+    }
     var id: String { rawValue }
     var title: String {
         switch self {
+        case .aiDebug: "AI API 调试"
+        case .mcp: "MCP 调试器"
         case .overview: "Overview"
+        case .workPilot: "WorkPilot 工作驾驶舱"
         case .codex: "Codex Usage"
         case .token: "Token Calculator"
         case .json: "JSON Formatter"
@@ -30,13 +91,16 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "JWT 查看器"
         case .regex: "正则表达式调试"
         case .process: "进程查找"
-        case .curl: "cURL 生成与转换"
-        case .localFeatures: LocalFeatureInfo.title
+        case .curl: "cURL 转换"
+        case .localFeature: localDescriptor?.title ?? "Local Features"
         }
     }
     var subtitle: String {
         switch self {
+        case .aiDebug: "粘贴和收藏 cURL，调试 JSON 与 SSE 响应，按需转换终端格式。"
+        case .mcp: "连接 MCP 服务，发现并调试工具、资源与 Prompts。"
         case .overview: "Your personal developer toolbox."
+        case .workPilot: "自动发现代码工作，随手记录与跟进，交给 Codex 整理日报。"
         case .codex: "A little clarity for your AI workflow."
         case .token: "Estimate tokens and model costs."
         case .json: "Format, validate and inspect JSON data."
@@ -56,13 +120,16 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .jwt: "在本机查看 JWT 内容与时间声明，签名状态清晰可见。"
         case .regex: "实时匹配、捕获组与替换预览。"
         case .process: "按名称或 TCP 监听端口查找 Mac 进程，并结束当前用户的进程。"
-        case .curl: "填写请求生成命令，检查并转换 Linux、CMD 与 PowerShell 版本。"
-        case .localFeatures: LocalFeatureInfo.subtitle
+        case .curl: "粘贴 cURL，转换终端格式，收藏常用命令。"
+        case .localFeature: localDescriptor?.subtitle ?? ""
         }
     }
     var symbol: String {
         switch self {
+        case .aiDebug: "waveform.path"
+        case .mcp: "point.3.connected.trianglepath.dotted"
         case .overview: "square.grid.2x2"
+        case .workPilot: "rectangle.3.group"
         case .codex: "terminal"
         case .token: "text.word.spacing"
         case .json: "curlybraces"
@@ -83,28 +150,32 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .regex: "text.magnifyingglass"
         case .process: "cpu"
         case .curl: "terminal.fill"
-        case .localFeatures: LocalFeatureInfo.symbol
+        case .localFeature: localDescriptor?.symbol ?? "square.dashed"
         }
     }
     var group: String {
         switch self {
-        case .overview: "Workspace"
-        case .codex, .token, .openrouterDaily: "AI"
+        case .overview, .workPilot: "Workspace"
+        case .codex, .token, .openrouterDaily, .aiDebug, .mcp: "AI"
         case .json, .base64, .timestamp, .uuid, .cron, .jwt, .regex: "Developer"
         case .port, .http, .dns, .process, .curl: "Network"
         case .postgres, .redis: "Database"
         case .dockerMirror, .dockerTransfer, .nginx: "DevOps"
-        case .localFeatures: LocalFeatureInfo.group
+        case .localFeature: localDescriptor?.group ?? "Workspace"
         }
     }
     static var availableTools: [Tool] { allCases.filter(\.available) }
     var available: Bool {
-        ![.token, .http, .dns, .postgres, .redis].contains(self)
-            && (self != .localFeatures || LocalFeatureInfo.available)
+        ![.token, .http, .dns, .postgres, .redis, .curl].contains(self)
+            && (!isLocalFeature || localDescriptor != nil)
+    }
+    private var isLocalFeature: Bool {
+        if case .localFeature = self { return true }
+        return false
     }
     static var sidebarGroups: [String] {
-        var groups = ["AI", "Developer", "DevOps", "Network"]
-        if LocalFeatureInfo.available && !groups.contains(LocalFeatureInfo.group) { groups.append(LocalFeatureInfo.group) }
+        var groups = ["Workspace", "AI", "Developer", "DevOps", "Network"]
+        for tool in LocalFeatureInfo.tools where !groups.contains(tool.group) { groups.append(tool.group) }
         return groups
     }
     func matches(_ query: String) -> Bool {
@@ -112,6 +183,9 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
     }
     private var aliases: String {
         switch self {
+        case .workPilot: "work pilot task project todo daily report 工作 驾驶舱 任务 项目 待办 记录 问题 跟进 日报 专注 计时"
+        case .aiDebug: "sse stream curl api ai json cmd powershell bash 收藏 转换 流式 大模型 接口 调试 请求"
+        case .mcp: "model context protocol inspector stdio streamable http tools resources prompts 协议 服务 工具 调试 资源 提示词"
         case .dockerMirror: "replaceDocker 镜像代理 替换"
         case .dockerTransfer: "pullAndPush 拉取 推送 私库"
         case .nginx: "nginxfmt 配置 格式化"
@@ -121,7 +195,7 @@ enum Tool: String, CaseIterable, Identifiable, Codable {
         case .regex: "regexp regular expression 正则 匹配 捕获 替换"
         case .process: "process pid kill terminate 进程 服务 端口 占用 结束 node java redis nginx"
         case .curl: "curl cURL http request command cmd powershell linux bash 请求 命令 生成 转换 接口"
-        case .localFeatures: LocalFeatureInfo.aliases
+        case .localFeature: localDescriptor?.aliases ?? ""
         default: ""
         }
     }
@@ -134,6 +208,10 @@ struct RecentTool: Codable, Identifiable {
 }
 
 @MainActor final class AppState: ObservableObject {
+    let workPilot = WorkPilotModel()
+    let aiDebugger = AIAPIDebugViewModel()
+    let mcpDebugger = MCPDebuggerModel()
+    let curl = CurlViewModel()
     @Published var selected: Tool = .overview
     @Published var paletteVisible = false
     @Published var favorites: [Tool] = []
@@ -146,20 +224,30 @@ struct RecentTool: Codable, Identifiable {
     init() {
         LocalFeatureInfo.preparePreferences()
         if let data = defaults.data(forKey: "favorites"), let values = try? JSONDecoder().decode([Tool].self, from: data) {
-            favorites = values.filter(\.available)
+            favorites = values.reduce(into: [Tool]()) { result, value in
+                let tool: Tool = value == .curl ? .aiDebug : value
+                if tool.available && !result.contains(tool) { result.append(tool) }
+            }
         } else { favorites = [.json, .timestamp, .uuid] }
         if let data = defaults.data(forKey: "sidebarOrder"), let saved = try? JSONDecoder().decode(SidebarOrder.self, from: data) {
             sidebarOrder = saved
             favorites = sidebarTools(in: Self.favoritesGroup)
         }
-        if let data = defaults.data(forKey: "recentTools"), let values = try? JSONDecoder().decode([RecentTool].self, from: data) { recent = values.filter { $0.tool.available } }
+        if let data = defaults.data(forKey: "recentTools"), let values = try? JSONDecoder().decode([RecentTool].self, from: data) {
+            recent = values.reduce(into: [RecentTool]()) { result, value in
+                let tool: Tool = value.tool == .curl ? .aiDebug : value.tool
+                if tool.available && !result.contains(where: { $0.tool == tool }) { result.append(RecentTool(tool: tool, date: value.date)) }
+            }
+        }
         if defaults.object(forKey: "rememberLastTool") == nil || defaults.bool(forKey: "rememberLastTool") {
-            if let tool = Tool(rawValue: defaults.string(forKey: "lastTool") ?? "overview"), tool.available {
-                selected = tool
+            if let saved = Tool(rawValue: defaults.string(forKey: "lastTool") ?? "overview") {
+                let tool: Tool = saved == .curl ? .aiDebug : saved
+                if tool.available { selected = tool }
             }
         }
     }
-    func navigate(_ tool: Tool) {
+    func navigate(_ requested: Tool) {
+        let tool: Tool = requested == .curl ? .aiDebug : requested
         guard tool.available else { return }
         selected = tool
         paletteVisible = false

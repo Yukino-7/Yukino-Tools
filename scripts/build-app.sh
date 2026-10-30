@@ -22,6 +22,7 @@ cp Resources/Info.plist "$app_directory/Contents/Info.plist"
 if [ -f LICENSE ]; then
     cp LICENSE "$app_directory/Contents/Resources/LICENSE"
 fi
+cp Sources/CZstd/LICENSE "$app_directory/Contents/Resources/Zstandard-LICENSE"
 if [ -f Resources/AppIcon.icns ]; then
     cp Resources/AppIcon.icns "$app_directory/Contents/Resources/AppIcon.icns"
 fi

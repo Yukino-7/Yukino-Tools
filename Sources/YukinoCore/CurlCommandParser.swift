@@ -2,6 +2,33 @@ import Foundation
 
 /// Literal command parsing only. No shell, subprocess, environment, file or network access.
 public enum CurlCommandParser {
+    /// Prefer explicit shell markers; ordinary literal curl commands use bash/zsh semantics.
+    /// A manual override remains available for commands whose syntax cannot identify the shell.
+    public static func detectedShell(_ input: String) -> CurlShell {
+        guard input.utf8.count <= 262_144 else { return .bash }
+        let source = input.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\r\n", with: "\n")
+        if source.hasPrefix("$curlStart = New-Object System.Diagnostics.ProcessStartInfo") || source.hasPrefix("& ") { return .powershell }
+        if source.hasPrefix("powershell.exe -NoProfile -EncodedCommand ") { return .cmd }
+        var quote: Character? = nil
+        let chars = Array(source)
+        var i = 0
+        while i < chars.count {
+            let c = chars[i]
+            if let active = quote {
+                if c == "\\", active == "\"" { i += 2; continue }
+                if c == active { quote = nil }
+            } else {
+                if c == "^", i + 1 < chars.count, chars[i + 1] == "\n" { return .cmd }
+                if c == "`", i + 1 < chars.count, chars[i + 1] == "\n" { return .powershell }
+                if c == "\\" { i += 2; continue }
+                if c == "'" || c == "\"" { quote = c }
+            }
+            i += 1
+        }
+        if source.lowercased().hasPrefix("curl.exe "), !source.contains("'") { return .cmd }
+        return .bash
+    }
+
     public static func parse(_ input: String, shell: CurlShell) throws -> CurlCommandPlan {
         try Task.checkCancellation()
         guard input.utf8.count <= 262_144, !input.contains("\0") else { throw ToolError.invalid("命令最多 256 KB，不能包含 NUL。") }

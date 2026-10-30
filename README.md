@@ -18,16 +18,16 @@
 
 ## 下载安装
 
-当前版本：**[v0.7.0](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.7.0)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
+当前版本：**[v0.8.0](https://github.com/Yukino-7/Yukino-Tools/releases/tag/v0.8.0)**。要求 **macOS 14+**，安装包适用于 **Apple Silicon（M 系列芯片）**。
 
 | 下载 | 安装方式 |
 | --- | --- |
-| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.7.0/Yukino-Tools-0.7.0-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
-| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.7.0/Yukino-Tools-0.7.0-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
-| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.7.0/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
+| [DMG 安装包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.8.0/Yukino-Tools-0.8.0-macos-arm64.dmg) | 打开后，将 **Yukino Tools.app** 拖到 **Applications** |
+| [ZIP 压缩包](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.8.0/Yukino-Tools-0.8.0-macos-arm64.zip) | 解压后，将应用放入 **Applications** |
+| [SHA-256 校验文件](https://github.com/Yukino-7/Yukino-Tools/releases/download/v0.8.0/SHA256SUMS.txt) | 将对应文件的哈希与校验文件比对 |
 
 ```sh
-shasum -a 256 Yukino-Tools-0.7.0-macos-arm64.dmg
+shasum -a 256 Yukino-Tools-0.8.0-macos-arm64.dmg
 ```
 
 将输出与校验文件中的同名条目比对；下载 ZIP 时，将命令中的文件名替换为对应 ZIP 文件名。
@@ -40,7 +40,10 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 
 | 分类 | 工具 | 主要功能 |
 | --- | --- | --- |
+| Workspace | **WorkPilot 工作驾驶舱** | 概览大屏、任务与记录合并、项目筛选与详情侧栏、Git / Codex 会话自动发现、专注计时、发送到 Codex 生成日报 |
 | AI | **Codex Usage** | 真实账户已用额度、重置时间、本机 Token 与会话统计、缓存率、上下文估算、用量图表 |
+| AI | **AI API 调试** | 直接粘贴与收藏 cURL，顶部发送、JSON 格式化与 SSE 流式响应；按需打开终端转换弹框，支持停止、超时、复制与导出 |
+| AI | **MCP 调试器** | stdio / Streamable HTTP 连接、工具发现与手动调用、资源与模板读取、Prompt 预览、协议日志、本地演示 |
 | AI | **OpenRouter 日报** | 免费模型变化、每周 Token 用量 TOP 5、榜单对比、Markdown 阅读与导出、历史导入 |
 | Developer | **JSON Formatter** | 格式化、压缩、校验、行号、语法高亮、双栏编辑与查找；保留数字精度、键顺序和转义文本 |
 | Developer | **Base64 Converter** | UTF-8 编码、解码、交换与复制 |
@@ -50,7 +53,6 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 | Developer | **JWT 查看器** | 本机解码 Header / Payload、iat / nbf / exp、有效期倒计时，明确显示签名未验证 |
 | Developer | **正则表达式调试** | ICU 实时匹配高亮、捕获组、i/m/s 选项与全局替换预览，支持超时与结果数量限制 |
 | Network | **进程查找** | 按名称或 TCP 监听端口定位本机进程，查看 PID、命令、归属与端口，确认后结束当前用户的进程 |
-| Network | **cURL 生成与转换** | 可视化生成请求命令，检查并互转 Linux / macOS、Windows CMD、PowerShell 格式，支持复制与脚本导出 |
 | Network | **Port Check** | TCP 连通性、连接耗时、超时设置与最近端点 |
 | DevOps | **Docker Mirror** | 生成镜像代理拉取及恢复原标签的命令，支持平台、sudo 和临时标签清理 |
 | DevOps | **Docker Transfer** | 本机与镜像仓库双向迁移的命令生成，支持 host:port、命名空间及分步复制 |
@@ -62,19 +64,40 @@ Intel Mac 可[从源码构建](#开发与构建)，暂未提供经过验证的 I
 
 ## 使用指南
 
-### cURL 生成与转换
+### WorkPilot 工作驾驶舱
 
-在 **Network → cURL 生成与转换** 打开，或按 `⌘K` 搜索 `curl`、`CMD`、`PowerShell`。此工具已包含在 v0.7.0 安装包中。
+在 **Workspace → WorkPilot 工作驾驶舱** 打开。创建项目并绑定本地 Git 仓库后，每 5 分钟自动发现本人当天的提交，确认后加入工作记录，并展示当前未提交文件状态；也可手动补采所选日期。工作台分为“概览、记录、日报”：任务、工作记录与问题统一在“记录”中处理，写一句即可保存，需继续处理时勾选“待跟进”。概览汇总进展，项目通过顶部筛选和详情侧栏查看。日报页汇总当天素材，可发送到 Codex Desktop，调用本机 `daily-report-optimizer` skill 整理正文。支持手动专注、前台应用识别规则与空闲暂停，数据保存在本机，可导出 / 导入 JSON 备份。
 
-- **填写请求**：选择 HTTP 方法，填写 URL、查询参数、请求头和认证。支持 JSON、纯文本、URL 编码表单与 Multipart 文本字段，保留重复参数；可调整重定向、响应头、调试输出和超时。
-- **粘贴并转换**：选择原命令所用的终端，粘贴一条 `curl` / `curl.exe` 命令后自动检查并转换，无需点击按钮；修改内容、切换来源或目标终端也会自动更新，连续输入会取消旧解析。支持常见短选项组合、续行、请求体、认证及文件引用；未知选项、变量、管道、重定向、多请求和有歧义的输入会停止转换，不静默丢弃参数。仅解析文本，不展开变量或读取引用文件。
-- **目标格式**：Linux / macOS 使用 bash / zsh 引号与续行；Windows CMD 默认输出可读的原生 `curl.exe` 命令，每行展示一个选项及其值。JSON 请求体在多行排版时使用 `^` 续行展开，在单行模式下自动压缩多行 JSON，原输入保留；其他换行、`%`、`!` 等内容会提示处理方式，不会自动生成编码命令。需要完整保留特殊参数时，可显式选择“PowerShell 兼容封装”；PowerShell 采用兼容 Windows PowerShell 5.1 / 7 的 `curl.exe` 进程参数形式，保留 JSON 引号。CMD 命令限约 8 KB，较长请求可切换 PowerShell。
-- **JSON 请求体**：多行排版时，直接在命令预览中的请求体参数内自动缩进展开 JSON，无额外预览模块；复制和导出使用相同排版。保留数字精度、字段顺序和转义文本，调整 JSON 结构之间的空白；填写请求时也可美化编辑框中的 JSON。单行模式和显式 CMD PowerShell 编码封装维持各自格式。
-- **复制与导出**：实时预览、单行 / 多行切换，一键复制；导出 `.sh`、`.cmd` 或 `.ps1`。PowerShell 脚本使用 UTF-8 BOM 兼容 5.1，CMD 脚本包含批处理所需的初始化。
+支持从本机 Codex 当日会话提取用户事项和最终答复，按目录匹配项目；确认加入记录后进入日报，分页与归档副本自动去重。Git 读取提交摘要和变更统计，不分析补丁语义；进度根据明确的事项状态计算。详见 [WorkPilot 使用说明](docs/workpilot.md)。已包含在 v0.8.0 安装包中。
 
-工具只生成和检查命令，不执行请求。请求内容与凭据不写入历史或设置；复制和导出会包含用户填写的凭据。语法检查不代表服务端已验证请求，跨系统文件路径需要自行检查。Linux 格式使用 bash / zsh 的 ANSI-C 引号语法，不面向所有 POSIX sh 实现。
+### AI API 调试（含 cURL 收藏与转换）
 
-参考：[curl 官方手册](https://curl.se/docs/manpage.html)、[CMD 文档](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmd)、[PowerShell 参数解析](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing)。Windows 格式已覆盖解析与参数往返测试，当前开发环境为 macOS，尚未在原生 Windows 终端执行验证。
+在 **AI → AI API 调试** 打开，或按 `⌘K` 搜索 `curl`、`JSON`、`SSE`、`CMD`、`PowerShell`。从 v0.8.0 起，原 cURL 收藏与转换已整合到此页面。
+
+- **直接粘贴与发送**：输入完整 cURL，顶部点击“发送请求”（`⌘↩`）。来源终端默认自动识别，特殊命令可在“请求与解析设置”中手动指定。页面不再常驻来源选择栏或大段引导文案，发送与停止按钮位于顶部；宽窗口并列展示请求和响应，空间不足时切换查看。
+- **沿用原收藏**：原有 `favorites.json` 无需迁移。收藏栏可按名称或主机地址搜索并载入命令；支持收藏、更新、重命名、另存与删除，载入不自动发送。窄窗口通过顶部收藏按钮打开列表。只主动收藏原始命令与来源终端，独立安全输入框中的 `{{API_KEY}}` 值不写入收藏；原命令本身携带的凭据会一起保存。
+- **按需转换**：点击顶部“转换”打开弹框，选择 Linux / macOS、Windows CMD 或 PowerShell，复制命令或导出脚本。保留多行排版、JSON 数字精度与字段顺序、CMD 原生和兼容封装、PowerShell 5.1 / 7 支持。转换不执行请求，不读取引用文件，也不改写调试页原始输入。
+- **普通 JSON 与文本响应**：JSON 返回自动格式化并保留大整数、字段顺序和原始数值拼写，可查看原文与响应头、复制正文或导出 `.json`。数组、标量与 JSON 错误响应同样保留；HTML、普通文本和无响应体请求正常展示。HTTP 状态与响应内容分开显示，失败响应不丢失正文。
+- **SSE 流式响应**：自动区分响应传输格式与 AI 内容解析模式。支持通用 SSE、Chat Completions、Responses、Anthropic、Dify 等已有适配，保留 Markdown 正文、提供方返回的思考内容、工具调用与 usage。可查看、搜索事件与原始流，停止或超时保留已收内容，不自动重试。
+- **设置与演示**：解析模式、正文路径和超时收在顶部设置。更多菜单提供请求示例、JSON / SSE 本机演示，以及最大 20 MiB 的 SSE 文件导入；演示不联网、不需要 Key。
+
+请求使用系统 `/usr/bin/curl`，通过标准输入传入配置，不执行 shell。只有主动发送后才联系命令指定的接口；除主动收藏外，请求、独立 API Key 和响应只保留在当前 App 会话中。切换收藏会清空独立填写的 API Key，避免误用上一请求的凭据。工具调用只展示，不自动执行。调试调用不读取文件引用、不输出到命令指定的文件，携带认证或自定义敏感请求头时不自动跟随重定向。
+
+收藏位于 `~/Library/Application Support/YukinoTools/Curl/favorites.json`，仅当前用户可读写；最多 1,000 条、单条命令 256 KB、总数据 20 MB。读取异常或其他实例更新时保留原文件，不静默覆盖。响应体上限 20 MiB、单个 SSE 事件 1 MiB、记录上限 10,000 条，达到限制时停止并保留已收内容。复制与导出可能包含请求或响应中的敏感内容。
+
+默认无数据超时 90 秒，总时限不限，命令显式超时优先。终端语法检查不代表服务端已验证请求；Windows 格式覆盖解析与参数往返测试，尚未在原生 Windows 终端执行验证。详见 [AI API 调试设计记录](docs/ai-api-debugger-design.md)。
+
+### MCP 调试器
+
+在 **AI → MCP 调试器** 打开，或按 `⌘K` 搜索 `MCP`、`stdio`。此功能已包含在 v0.8.0 安装包中。
+
+- **本地演示**：无需安装服务，即可体验工具调用、资源读取、资源模板和 Prompt 预览，不联网、不调用模型。
+- **本机 stdio**：选择可执行文件绝对路径（如 `node`、`uvx` 的实际路径），参数填写为 JSON 字符串数组；高级设置可填写工作目录、附加环境变量与超时。直接启动程序，不经过 Shell；`npx` / `uvx` 可能按参数自行下载依赖。
+- **Streamable HTTP**：填写完整 MCP 地址，可使用独立 Bearer Token 输入框或自定义认证请求头。支持 JSON 与 SSE POST 响应、会话 ID 和协议版本协商；不自动跟随重定向。
+- **发现与操作**：按服务声明的能力加载工具、资源、资源模板与 Prompts；支持搜索、刷新和分页。查看 Schema、编辑 JSON 参数并确认后调用工具；资源模板须手动替换 URI 参数，Prompt 只获取消息，不调用模型。
+- **结果与日志**：分别展示文本正文、完整 JSON、业务错误、协议或传输错误及耗时；支持复制、导出结果与协议日志。超时或停止只表示客户端停止等待，不保证服务端操作终止，不自动重试。
+
+配置、凭据、请求与响应仅保留在本次 App 会话；切换工具会断开连接。日志和导出可能包含敏感参数及服务返回。首版不支持 OAuth 登录、旧版 HTTP+SSE、独立 GET 通知流、资源订阅、异步任务及自动工具执行。兼容范围与限制见 [MCP 调试器说明](docs/mcp-debugger.md)。
 
 ### Cron、JWT 与正则
 
@@ -188,13 +211,14 @@ Docker 工具只生成命令，不启动 Docker、不自动拉取或推送镜像
 
 | 功能 | 数据来源与处理 |
 | --- | --- |
-| cURL 生成与转换 | 在本机生成与解析命令，不发送请求、不读取导入命令引用文件；不保存请求内容或认证凭据 |
+| AI API 调试（含收藏与转换） | 只有主动发送才联系指定接口；主动收藏会将原始命令及其凭据保存在本机，独立 API Key 与未收藏的输入和响应仅存当前会话；转换不执行请求 |
 | Cron / JWT / 正则 | 在本机处理；不上传输入、不保存 JWT 或正则文本；Cron 不注册系统任务 |
 | 文本转换与 Nginx | 在本机处理，文件由用户选择导入或保存 |
 | 进程查找 | 读取本机可见进程的元数据、命令参数与 TCP 监听端口；只在确认后结束选定进程，不持久化或上传命令信息 |
 | Port Check | 连接用户指定的 TCP 端点，检查后关闭，不发送应用数据 |
 | Docker 命令 | 在本机生成脚本，执行与仓库认证由用户及 Docker 管理 |
 | Codex 账户额度 | 通过已安装 CLI 的只读 `account/rateLimits/read` 获取；登录凭据留在 Codex 内部 |
+| WorkPilot 会话发现 | 读取本机 Codex 会话的用户事项与最终答复，候选保存在本机；确认加入后进入日报，不采集工具输出或思考过程 |
 | Codex Token 统计 | 增量读取本机 `sessions` / `archived_sessions` 日志的元数据和计数，不保存或展示对话正文 |
 | OpenRouter 日报 | 获取公开模型 API 与 Discover 免费榜，报告和快照只保存在本机，不上传历史、不调用模型推理接口 |
 
@@ -231,7 +255,7 @@ open "build/public/Yukino Tools.app"
 
 ### 验证范围
 
-v0.7.0 新增 28 项 cURL 回归测试，公开版全量 **103 项通过**，覆盖 URL 编码、重复参数、请求体保真与命令内 JSON 美化、认证冲突、bash / zsh 实际参数、Windows 参数往返、导入语法检查和本机 HTTP 请求核对。
+v0.8.0 公开版全量 **158 项测试通过**，覆盖 JSON / HTML / SSE 真实本机响应、cURL 来源识别与终端往返、收藏持久化与冲突保护、MCP stdio / HTTP、WorkPilot 采集与备份、压缩日志统计及已有开发工具回归。
 
 v0.6.0 全量 **75 项测试已通过**，覆盖标准与 Quartz 日期规则、闰年、时区与夏令时、非法输入、JWT 时间边界与数值类型、Unicode 捕获、零宽匹配、替换、数量限制、超时和取消；另覆盖菜单分组边界、排序持久化和隐藏条目恢复；已通过 Release 构建与原生界面检查。
 

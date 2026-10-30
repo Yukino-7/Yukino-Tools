@@ -3,12 +3,22 @@ import YukinoCore
 
 struct MarkdownReader: View {
     let blocks: [MarkdownBlock]
+    var embedded = false
+    var availableWidth: CGFloat = 600
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 16) {
-                    ForEach(blocks) { block in blockView(block.kind, availableWidth: max(0, geometry.size.width - 48)) }
-                }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
+        Group {
+            if embedded {
+                VStack(alignment: .leading, spacing: 14) {
+                    ForEach(blocks) { block in blockView(block.kind, availableWidth: availableWidth) }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                GeometryReader { geometry in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 16) {
+                            ForEach(blocks) { block in blockView(block.kind, availableWidth: max(0, geometry.size.width - 48)) }
+                        }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
             }
         }
         .textSelection(.enabled)
@@ -36,9 +46,21 @@ struct MarkdownReader: View {
                 Text(marker).foregroundStyle(.secondary).frame(minWidth: 14, alignment: .trailing)
                 inline(text).frame(maxWidth: .infinity, alignment: .leading)
             }.font(.system(size: 13)).padding(.leading, CGFloat(indent) * 16)
-        case .code(_, let text):
-            ScrollView(.horizontal) {
-                Text(text).font(.system(size: 12, design: .monospaced)).fixedSize(horizontal: true, vertical: false).padding(14)
+        case .code(let language, let text):
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text(language.isEmpty ? "代码" : language).font(.system(size: 10, weight: .medium)).foregroundStyle(.secondary)
+                    Spacer()
+                    Button {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(text, forType: .string)
+                    } label: { Label("复制", systemImage: "doc.on.doc") }
+                        .buttonStyle(.borderless).font(.system(size: 10)).help("复制代码")
+                }.padding(.horizontal, 12).padding(.vertical, 8)
+                Divider()
+                ScrollView(.horizontal) {
+                    Text(text).font(.system(size: 12, design: .monospaced)).fixedSize(horizontal: true, vertical: false).padding(14)
+                }
             }.background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
         case .rule: Divider()
         case .table(let headers, let rows, let alignment):

@@ -34,6 +34,7 @@ struct CodexUsageView: View {
     @State private var session: CodexSession?
     @State private var query = ""
     @State private var sessionCount = 50
+    @State private var sessionsExpanded = false
     private var filtered: [CodexSession] {
         usage.local.sessions.filter {
             query.isEmpty || "\($0.project) \($0.id) \($0.model ?? "")".localizedCaseInsensitiveContains(query)
@@ -61,47 +62,62 @@ struct CodexUsageView: View {
             Panel {
                 VStack(alignment: .leading, spacing: 18) {
                     HStack {
-                        Text("Session usage").font(.system(size: 17, weight: .semibold))
-                        Spacer()
-                        Text("\(usage.local.sessions.count) local sessions").font(.system(size: 11)).foregroundStyle(.secondary)
-                        TextField("Filter sessions", text: $query).textFieldStyle(.roundedBorder).frame(width: 180)
-                    }
-                    HStack {
-                        Text("PROJECT / SESSION").frame(maxWidth: .infinity, alignment: .leading)
-                        Text("TOKENS").frame(width: 90, alignment: .trailing)
-                        Text("LAST CONTEXT · EST.").frame(width: 180, alignment: .trailing)
-                    }.font(.system(size: 10, weight: .semibold)).tracking(0.7).foregroundStyle(.secondary)
-                    Divider()
-                    if filtered.isEmpty {
-                        Text(usage.scanning ? "Reading local sessions…" : query.isEmpty ? "No local session metadata found." : "No matching sessions.")
-                            .font(.system(size: 12)).foregroundStyle(.secondary).padding(.vertical, 16)
-                    }
-                    LazyVStack(spacing: 14) {
-                        ForEach(Array(filtered.prefix(sessionCount))) { item in
-                            Button { session = item } label: {
-                                HStack(spacing: 12) {
-                                    SymbolTile(symbol: "terminal", size: 30)
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(item.project).font(.system(size: 12, weight: .medium))
-                                        Text("\(item.id.prefix(8)) · \(item.model ?? "Unknown model")\(item.archived ? " · Archived" : "")")
-                                            .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
-                                    }.frame(maxWidth: .infinity, alignment: .leading)
-                                    Text(UsageFormat.tokens(item.tokens.total)).font(.system(size: 12, design: .monospaced)).frame(width: 90, alignment: .trailing)
-                                    HStack(spacing: 12) {
-                                        if let fraction = item.contextFraction { ProgressView(value: fraction).frame(width: 80) }
-                                        Text(UsageFormat.percent(item.contextFraction)).font(.system(size: 11)).monospacedDigit().frame(width: 45)
-                                        Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(.tertiary)
-                                    }.frame(width: 180, alignment: .trailing)
-                                }.contentShape(Rectangle()).padding(.vertical, 4)
-                            }.buttonStyle(.plain)
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.15)) { sessionsExpanded.toggle() }
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: sessionsExpanded ? "chevron.down" : "chevron.right")
+                                    .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                                Text("Session usage").font(.system(size: 17, weight: .semibold))
+                                Spacer()
+                                Text("\(usage.local.sessions.count) local sessions").font(.system(size: 11)).foregroundStyle(.secondary)
+                            }.contentShape(Rectangle())
+                        }.buttonStyle(.plain)
+                            .accessibilityLabel("Session usage")
+                            .accessibilityValue(sessionsExpanded ? "Expanded" : "Collapsed")
+                            .help(sessionsExpanded ? "Collapse session details" : "Expand session details")
+                        if sessionsExpanded {
+                            TextField("Filter sessions", text: $query).textFieldStyle(.roundedBorder).frame(width: 180)
                         }
                     }
-                    if filtered.count > sessionCount {
-                        Button("Show more sessions") { sessionCount += 50 }
-                    }
-                    if let scanned = usage.localUpdatedAt {
-                        Text("Scanned \(usage.local.scannedFiles) logs at \(scanned.formatted(date: .omitted, time: .standard)). Token totals cover locally recorded activity, including archives.")
-                            .font(.system(size: 10)).foregroundStyle(.secondary)
+                    if sessionsExpanded {
+                        HStack {
+                            Text("PROJECT / SESSION").frame(maxWidth: .infinity, alignment: .leading)
+                            Text("TOKENS").frame(width: 90, alignment: .trailing)
+                            Text("LAST CONTEXT · EST.").frame(width: 180, alignment: .trailing)
+                        }.font(.system(size: 10, weight: .semibold)).tracking(0.7).foregroundStyle(.secondary)
+                        Divider()
+                        if filtered.isEmpty {
+                            Text(usage.scanning ? "Reading local sessions…" : query.isEmpty ? "No local session metadata found." : "No matching sessions.")
+                                .font(.system(size: 12)).foregroundStyle(.secondary).padding(.vertical, 16)
+                        }
+                        LazyVStack(spacing: 14) {
+                            ForEach(Array(filtered.prefix(sessionCount))) { item in
+                                Button { session = item } label: {
+                                    HStack(spacing: 12) {
+                                        SymbolTile(symbol: "terminal", size: 30)
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(item.project).font(.system(size: 12, weight: .medium))
+                                            Text("\(item.id.prefix(8)) · \(item.model ?? "Unknown model")\(item.archived ? " · Archived" : "")")
+                                                .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
+                                        }.frame(maxWidth: .infinity, alignment: .leading)
+                                        Text(UsageFormat.tokens(item.tokens.total)).font(.system(size: 12, design: .monospaced)).frame(width: 90, alignment: .trailing)
+                                        HStack(spacing: 12) {
+                                            if let fraction = item.contextFraction { ProgressView(value: fraction).frame(width: 80) }
+                                            Text(UsageFormat.percent(item.contextFraction)).font(.system(size: 11)).monospacedDigit().frame(width: 45)
+                                            Image(systemName: "chevron.right").font(.system(size: 9)).foregroundStyle(.tertiary)
+                                        }.frame(width: 180, alignment: .trailing)
+                                    }.contentShape(Rectangle()).padding(.vertical, 4)
+                                }.buttonStyle(.plain)
+                            }
+                        }
+                        if filtered.count > sessionCount {
+                            Button("Show more sessions") { sessionCount += 50 }
+                        }
+                        if let scanned = usage.localUpdatedAt {
+                            Text("Scanned \(usage.local.scannedFiles) logs at \(scanned.formatted(date: .omitted, time: .standard)). Token totals cover locally recorded activity, including archives.")
+                                .font(.system(size: 10)).foregroundStyle(.secondary)
+                        }
                     }
                 }
             }

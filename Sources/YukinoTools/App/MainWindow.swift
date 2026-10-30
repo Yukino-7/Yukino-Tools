@@ -16,13 +16,16 @@ struct MainWindow: View {
             Group {
                 switch state.selected {
                 case .overview: OverviewView()
+                case .workPilot: WorkPilotView(model: state.workPilot)
                 case .codex: CodexUsageView()
                 case .json: JSONFormatterView()
                 case .base64: Base64View()
                 case .timestamp: TimestampView()
                 case .uuid: UUIDView()
                 case .port: PortCheckView()
-                case .curl: CurlView()
+                case .curl: AIAPIDebugView(model: state.aiDebugger, curls: state.curl)
+                case .aiDebug: AIAPIDebugView(model: state.aiDebugger, curls: state.curl)
+                case .mcp: MCPDebuggerView(model: state.mcpDebugger)
                 case .process: ProcessFinderView()
                 case .cron: CronView()
                 case .jwt: JWTView()
@@ -31,7 +34,7 @@ struct MainWindow: View {
                 case .dockerTransfer: DockerCommandsView(mirror: false).id(Tool.dockerTransfer)
                 case .nginx: NginxFormatterView()
                 case .openrouterDaily: OpenRouterDailyView()
-                case .localFeatures: LocalFeatureView()
+                case let .localFeature(id): LocalFeatureView(id: id).id(id)
                 default: OverviewView()
                 }
             }

@@ -36,8 +36,10 @@ for source in sources:
 source_groups = [obj(name, 'PBXGroup', f'\t\t\tchildren = {array(refs)};\n\t\t\tname = {name};\n\t\t\tsourceTree = "<group>";') for name, refs in groups.items()]
 icon = obj('AppIcon.icns', 'PBXFileReference', '\t\t\tlastKnownFileType = image.icns;\n\t\t\tpath = Resources/AppIcon.icns;\n\t\t\tsourceTree = SOURCE_ROOT;')
 icon_build = obj('AppIcon in Resources', 'PBXBuildFile', f'\t\t\tfileRef = {icon};')
+zstd_license = obj('Zstandard-LICENSE', 'PBXFileReference', '\t\t\tlastKnownFileType = text;\n\t\t\tpath = Sources/CZstd/LICENSE;\n\t\t\tsourceTree = SOURCE_ROOT;')
+zstd_license_build = obj('Zstandard license in Resources', 'PBXBuildFile', f'\t\t\tfileRef = {zstd_license};')
 info = obj('Info.plist', 'PBXFileReference', '\t\t\tlastKnownFileType = text.plist.xml;\n\t\t\tpath = Resources/Info.plist;\n\t\t\tsourceTree = SOURCE_ROOT;')
-resources_group = obj('Resources', 'PBXGroup', f'\t\t\tchildren = {array([icon, info])};\n\t\t\tname = Resources;\n\t\t\tsourceTree = "<group>";')
+resources_group = obj('Resources', 'PBXGroup', f'\t\t\tchildren = {array([icon, info, zstd_license])};\n\t\t\tname = Resources;\n\t\t\tsourceTree = "<group>";')
 product = obj('Yukino Tools.app', 'PBXFileReference', '\t\t\texplicitFileType = wrapper.application;\n\t\t\tincludeInIndex = 0;\n\t\t\tpath = "Yukino Tools.app";\n\t\t\tsourceTree = BUILT_PRODUCTS_DIR;')
 products = obj('Products', 'PBXGroup', f'\t\t\tchildren = ({product});\n\t\t\tname = Products;\n\t\t\tsourceTree = "<group>";')
 main_group = obj('Main group', 'PBXGroup', f'\t\t\tchildren = {array(source_groups + [resources_group, products])};\n\t\t\tsourceTree = "<group>";')
@@ -45,7 +47,7 @@ package = obj('Local Yukino core package', 'XCLocalSwiftPackageReference', '\t\t
 core = obj('YukinoCore', 'XCSwiftPackageProductDependency', f'\t\t\tpackage = {package};\n\t\t\tproductName = YukinoCore;')
 core_build = obj('YukinoCore in Frameworks', 'PBXBuildFile', f'\t\t\tproductRef = {core};')
 phases = []
-for name, isa, files in [('Sources', 'PBXSourcesBuildPhase', build_files), ('Frameworks', 'PBXFrameworksBuildPhase', [core_build]), ('Bundle resources', 'PBXResourcesBuildPhase', [icon_build])]:
+for name, isa, files in [('Sources', 'PBXSourcesBuildPhase', build_files), ('Frameworks', 'PBXFrameworksBuildPhase', [core_build]), ('Bundle resources', 'PBXResourcesBuildPhase', [icon_build, zstd_license_build])]:
     phases.append(obj(name, isa, f'\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = {array(files)};\n\t\t\trunOnlyForDeploymentPostprocessing = 0;'))
 
 project_configs = []

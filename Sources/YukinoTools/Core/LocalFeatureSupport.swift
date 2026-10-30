@@ -1,14 +1,18 @@
 import SwiftUI
 
+struct LocalToolDescriptor {
+    let id: String
+    let title: String
+    let subtitle: String
+    let symbol: String
+    let group: String
+    let aliases: String
+}
+
 // Private sources supply these integration points only for explicit local builds.
 #if !YUKINO_LOCAL_FEATURES
 enum LocalFeatureInfo {
-    static let available = false
-    static let title = "Local Features"
-    static let subtitle = ""
-    static let symbol = "square.dashed"
-    static let group = "Workspace"
-    static let aliases = ""
+    static let tools: [LocalToolDescriptor] = []
     static func preparePreferences() {}
 }
 
@@ -17,6 +21,7 @@ enum LocalFeatureInfo {
 }
 
 struct LocalFeatureView: View {
+    let id: String
     var body: some View { EmptyView() }
 }
 

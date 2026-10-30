@@ -469,3 +469,26 @@ server.handle_request()
     do { _ = try await worker.value; Issue.record("Cancelled import unexpectedly succeeded") }
     catch is CancellationError {} catch { Issue.record("Unexpected error: \(error)") }
 }
+
+@Test func curlDetectsSourcesForExistingGeneratedCommandsWithoutChangingArguments() throws {
+    let parsed = try CurlCommandParser.parse("curl https://example.com --data-raw '{\"id\":9007199254740993}'", shell: .bash)
+    for shell in CurlShell.allCases {
+        for multiline in [true, false] {
+            let command = try CurlShellService.render(parsed, shell: shell, multiline: multiline, prettyJSON: true).text
+            let detected = CurlCommandParser.detectedShell(command)
+            #expect(detected == shell)
+            let imported = try CurlCommandParser.parse(command, shell: detected)
+            #expect(try JSONService.transform(CurlShellService.formattedJSONBody(imported)!, minify: true) == "{\"id\":9007199254740993}")
+        }
+    }
+    let wrapper = try CurlShellService.render(parsed, shell: .cmd, cmdStyle: .powershell).text
+    #expect(CurlCommandParser.detectedShell(wrapper) == .cmd)
+    #expect(try CurlCommandParser.parse(wrapper, shell: .cmd).arguments == parsed.arguments)
+}
+
+@Test func curlSourceDetectionIgnoresMarkersInsideLiteralArguments() throws {
+    #expect(CurlCommandParser.detectedShell("& curl.exe 'https://example.com'") == .powershell)
+    #expect(CurlCommandParser.detectedShell("curl.exe ^\r\n  \"https://example.com\"") == .cmd)
+    #expect(CurlCommandParser.detectedShell("curl `\n  'https://example.com'") == .powershell)
+    #expect(CurlCommandParser.detectedShell("curl 'https://example.com' --data-raw 'contains ^\n and `\n text'") == .bash)
+}

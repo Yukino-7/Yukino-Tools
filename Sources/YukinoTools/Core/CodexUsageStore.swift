@@ -91,16 +91,23 @@ struct UsagePoint: Identifiable {
         do { return .success(try await CodexAccountService.fetch(executable: executable)) }
         catch { return .failure(error) }
     }
-    func points(days: Int) -> [UsagePoint] {
+    /// A nil period includes every recorded day, starting with the oldest usage event.
+    func points(days: Int?) -> [UsagePoint] {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let start = calendar.date(byAdding: .day, value: 1 - days, to: today)!
+        let start: Date
+        if let days {
+            start = calendar.date(byAdding: .day, value: 1 - days, to: today)!
+        } else {
+            start = min(today, local.events.map(\.date).min().map { calendar.startOfDay(for: $0) } ?? today)
+        }
         var totals: [Date: Int64] = [:]
         for event in local.events where event.date >= start {
             let bucket = days == 1 ? calendar.dateInterval(of: .hour, for: event.date)!.start : calendar.startOfDay(for: event.date)
             totals[bucket, default: 0] += event.tokens.total
         }
-        let count = days == 1 ? calendar.component(.hour, from: Date()) + 1 : days
+        let count = days == 1 ? calendar.component(.hour, from: Date()) + 1
+            : calendar.dateComponents([.day], from: start, to: today).day! + 1
         return (0..<count).map { index in
             let date = calendar.date(byAdding: days == 1 ? .hour : .day, value: index, to: start)!
             return UsagePoint(date: date, tokens: totals[date] ?? 0)

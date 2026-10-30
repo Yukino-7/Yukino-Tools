@@ -42,6 +42,7 @@ struct GeneralSettings: View {
 
 struct AppearanceSettings: View {
     @AppStorage("appearance") private var appearance = "system"
+    @AppStorage("themeColor") private var themeColor = AppTheme.native.rawValue
     var body: some View {
         Form {
             Picker("Appearance", selection: $appearance) {
@@ -49,8 +50,8 @@ struct AppearanceSettings: View {
                 Text("Light").tag("light")
                 Text("Dark").tag("dark")
             }.pickerStyle(.segmented)
-            LabeledContent("Accent color") { Text("Follow macOS").foregroundStyle(.secondary) }
-            Text("Yukino uses your Mac’s accent color and native system typography.").font(.system(size: 11)).foregroundStyle(.secondary)
+            LabeledContent("主题色") { ThemeColorPicker(selection: $themeColor) }
+            Text("macOS 原生跟随系统强调色；其他主题色可搭配浅色、深色或跟随系统外观。").font(.system(size: 11)).foregroundStyle(.secondary)
         }.formStyle(.grouped)
     }
 }

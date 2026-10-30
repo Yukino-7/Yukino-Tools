@@ -173,3 +173,92 @@ private func record(_ usage: [String: Int], id: String, owner: String = "session
     #expect(result.sessions.first?.tokens.total == 180)
     #expect(result.sessions.first?.archived == false)
 }
+
+@Test func compressionAndArchivingPreserveTotalsWithoutDuplicateResponses() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let active = root.appendingPathComponent("sessions")
+    let archived = root.appendingPathComponent("archived_sessions")
+    try FileManager.default.createDirectory(at: active, withIntermediateDirectories: true)
+    try FileManager.default.createDirectory(at: archived, withIntermediateDirectories: true)
+    let plain = active.appendingPathComponent("page1.jsonl")
+    var data = try meta(); data.append(10)
+    data.append(try record(counters(100, 20), id: "first")); data.append(10)
+    try data.write(to: plain)
+    let service = CodexLogService()
+    #expect(try await service.scan(root: root).totals.total == 120)
+
+    let compressed = active.appendingPathComponent("page1.jsonl.zst")
+    try compressedFirstPage.write(to: compressed)
+    // A compressor may briefly leave both representations in place.
+    var result = try await service.scan(root: root)
+    #expect(result.totals.total == 120)
+    #expect(result.events.count == 1)
+    try FileManager.default.removeItem(at: plain)
+    #expect(try await service.scan(root: root).totals.total == 120)
+
+    try compressedSecondPage.write(to: active.appendingPathComponent("page2.jsonl.zst"))
+    try compressedFirstPage.write(to: archived.appendingPathComponent("page1-copy.jsonl.zst"))
+    result = try await service.scan(root: root)
+    #expect(result.scannedFiles == 3)
+    #expect(result.sessions.count == 1)
+    #expect(result.events.count == 2)
+    #expect(result.totals.total == 180)
+    #expect(result.unreadableFiles == 0)
+    #expect(result.malformedLines == 0)
+    #expect(result.sessions.first?.archived == false)
+    // Repeated refreshes reuse the compressed-file cache.
+    #expect(try await service.scan(root: root).totals.total == 180)
+    try FileManager.default.removeItem(at: compressed)
+    try FileManager.default.moveItem(at: active.appendingPathComponent("page2.jsonl.zst"),
+                                    to: archived.appendingPathComponent("page2.jsonl.zst"))
+    result = try await service.scan(root: root)
+    #expect(result.totals.total == 180)
+    #expect(result.sessions.first?.archived == true)
+}
+
+@Test func compressedLogsSupportLegacyCountersConcatenatedFramesAndReplacement() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let active = root.appendingPathComponent("sessions")
+    try FileManager.default.createDirectory(at: active, withIntermediateDirectories: true)
+    let file = active.appendingPathComponent("rollout.jsonl.zst")
+    try compressedLegacy.write(to: file)
+    let service = CodexLogService()
+    #expect(try await service.scan(root: root).totals.total == 300)
+    // Replacing an archive must rebuild counters, rather than append deltas.
+    try (compressedFirstPage + compressedSecondPage).write(to: file)
+    let result = try await service.scan(root: root)
+    #expect(result.totals.total == 180)
+    #expect(result.events.count == 2)
+    #expect(result.unreadableFiles == 0)
+}
+
+@Test func damagedCompressedLogsReportFailuresWithoutCommittingPartialCounters() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let active = root.appendingPathComponent("sessions")
+    try FileManager.default.createDirectory(at: active, withIntermediateDirectories: true)
+    var corrupted = compressedLegacy
+    corrupted[corrupted.count - 1] ^= 1 // Frame checksum failure after the usage records.
+    try corrupted.write(to: active.appendingPathComponent("corrupted.jsonl.zst"))
+    try compressedFirstPage.dropLast(4).write(to: active.appendingPathComponent("truncated.jsonl.zst"))
+    try Data().write(to: active.appendingPathComponent("empty.jsonl.zst"))
+    // Other compressed files in the directory are not session logs.
+    try Data("unrelated".utf8).write(to: active.appendingPathComponent("notes.zst"))
+    let service = CodexLogService()
+    let result = try await service.scan(root: root)
+    #expect(result.totals.total == 0)
+    #expect(result.unreadableFiles == 3)
+    #expect(result.scannedFiles == 0)
+    try compressedFirstPage.write(to: active.appendingPathComponent("truncated.jsonl.zst"))
+    let repaired = try await service.scan(root: root)
+    #expect(repaired.totals.total == 120)
+    #expect(repaired.unreadableFiles == 2)
+}
+
+// Synthetic fixtures generated with Zstandard 1.5.7, including frame checksums.
+// The first expands past 64 KiB; the other two end without a newline.
+private let compressedFirstPage = Data(base64Encoded: "KLUv/QRYdAQAggkeHmA1bgOAf2UbmYRtoUVWIwpG0mEATOi38YVJkGGYAwHPt9N2u46uB8WsrWkzRNntY10Cz3OmrOd1Lczy0dexBFMouJcidnnF8wnAOroBMRHzQAIK0gDTYaDx/GuqWRvro6uUsDv5RK3SqHd01doQt4xZ+Xl9Td8JBQB7/vHMJXMBgsmPBkafik2RAQ0EANKFExigJ21oCpH1j4AVrdtkkvyHZ6YBgv5wswKAlJINA+ztl11hDrMHlV92qUbB8rKh0b7MCPFzjQjm9T58BE48L1HZaJK8Rfm0wIPOqGC7EA4AXdg4rLoPlexv2A9eUzOHIcHFN8Mbxg3YOIzTXhzGCMC94BtGMQwbxsP2G3LABkFpIHE=")!
+private let compressedSecondPage = Data(base64Encoded: "KLUv/QRYXQkAVlI3IVBpqwNImJIsOlbkP4aAVEj9yvZmltY8BLMv/g7FzCImDC4ALQAuAAWZKBMhciCVQyAPRJLJ0RtGvVamvZ+rg7U30JnihaGan6unTFpu3dpH14bx3giNOU5sNTGlTvHeQNdWBonh+HVT/Lwt6+i6HOT+OW9bQAJDv6UI7BrD0ZnC+nkP8k8mgt4PNtsSqmFa1GM+2Pbzt5BXWl3wSxLNpLeaoAAxxkTQNaE1XNaCpkVtMcaYAcoBSaQgkMPP2fLSXm5ancIcL3UpZoKg98mU2LbcSt1PJqaKpdZPJgEcAANQAd5tQEnZ6zwBlNnNE3erZnBfTlt1QHLjJmxhMUDbYeTAYVh1HyrZ3+QeZ3TrXfIzGuZvIGy2szEB2UWZOB1N89MO01TAigzEc+rT")!
+private let compressedLegacy = Data(base64Encoded: "KLUv/QRYvQYA0o0pIFBp2wYIUu3199Jvsabp7uSYJpnp/igg6MWdvJhZxIQB772HaDgcEHoP0ZHngylprC0rbX4wIWqw1PpB1G5/EI88t2OaJopdUlRvf5HfgsZ+3s3tSk0T20fCS+qmCArw3pmyntfVuOWfb2MJN1DgXnqwDVN4HklYPydATMREoAAajAA0EAjR88yimnVh/XNlIOyLPKJWUSjm56p1SW0Zs/Lzyij6ixEAAlABPHxAGdB2RjlwLVbdh0r2N7nHGVJ9V/MznPgZRsYAZJcMcdHAaFOxKTLguXd0")!

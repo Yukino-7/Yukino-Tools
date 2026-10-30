@@ -119,7 +119,7 @@ struct MetricCard: View {
 }
 
 struct UsageChartPanel: View {
-    @State private var days = 7
+    @State private var days: Int? = 7
     @State private var hoveredDate: Date?
     @EnvironmentObject private var usage: CodexUsageStore
     private var points: [UsagePoint] { usage.points(days: days) }
@@ -134,13 +134,18 @@ struct UsageChartPanel: View {
                             Text(usage.ready ? total : "—").font(.system(size: 24, weight: .semibold, design: .rounded))
                             Text("tokens · local logs").font(.system(size: 11)).foregroundStyle(.secondary)
                         }
+                        if days == nil, usage.ready, let first = points.first, let last = points.last {
+                            Text("\(first.date.formatted(.dateTime.year().month().day())) – \(last.date.formatted(.dateTime.year().month().day()))")
+                                .font(.system(size: 11)).foregroundStyle(.secondary)
+                        }
                     }
                     Spacer()
                     Picker("Period", selection: $days) {
-                        Text("Today").tag(1)
-                        Text("7 days").tag(7)
-                        Text("30 days").tag(30)
-                    }.pickerStyle(.segmented).frame(width: 205).labelsHidden()
+                        Text("Today").tag(1 as Int?)
+                        Text("7 days").tag(7 as Int?)
+                        Text("30 days").tag(30 as Int?)
+                        Text("All time").tag(nil as Int?)
+                    }.pickerStyle(.segmented).frame(width: 280).labelsHidden()
                 }
                 if !usage.ready {
                     ContentUnavailableView("Loading local activity", systemImage: "chart.xyaxis.line", description: Text(usage.localError ?? "Reading Codex token counters…"))

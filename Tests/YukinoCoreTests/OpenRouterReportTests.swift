@@ -77,6 +77,59 @@ private func tempDirectory() throws -> URL {
     #expect(OpenRouterReportService.parseTop5(page.replacingOccurrences(of: "Model B", with: "Model A")).isEmpty)
 }
 
+// Shape used by Discover's initialView.lanes, independent of its visible tables.
+private func discoverLane(_ id: String = "free") -> [String: Any] {
+    ["id": id, "title": id == "free" ? "Free models" : "Always-latest aliases", "models": (1...5).map { rank -> [String: Any] in
+        ["name": "Model \(Character(UnicodeScalar(64 + rank)!)) (free)", "href": "/vendor/model-\(rank):free",
+         "stats": [["label": "Tokens/wk", "value": "\(6 - rank).5B"], ["label": "Context", "value": "1M"]]]
+    }]
+}
+
+private func discoverFlight(_ lanes: [[String: Any]], splitChunks: Bool = false) throws -> String {
+    let frame: [Any] = ["$", "$Lac", NSNull(), ["initialView": ["lanes": lanes]]]
+    let data = try JSONSerialization.data(withJSONObject: frame, options: [.sortedKeys])
+    let payload = "aa:" + String(decoding: data, as: UTF8.self) + "\n"
+    let middle = payload.index(payload.startIndex, offsetBy: payload.count / 2)
+    let chunks = splitChunks ? [String(payload[..<middle]), String(payload[middle...])] : [payload]
+    return try chunks.map { chunk in
+        let encoded = try JSONSerialization.data(withJSONObject: [1, chunk] as [Any])
+        return "<script>self.__next_f.push(\(String(decoding: encoded, as: UTF8.self)))</script>"
+    }.joined()
+}
+
+@Test func dailyWeeklyParserUsesOfficialEmbeddedFreeLaneWhenTableChanges() throws {
+    let html = "<h2>New layout</h2><div>No table</div>" + (try discoverFlight([discoverLane("aliases"), discoverLane()], splitChunks: true))
+    let rows = OpenRouterReportService.parseTop5(html)
+    #expect(rows.map(\.rank) == [1, 2, 3, 4, 5])
+    #expect(rows.first?.modelID == "vendor/model-1:free")
+    #expect(rows.first?.name == "Model A" && rows.first?.provider == "vendor")
+    #expect(rows.first?.tokens == 5.5e9 && rows.first?.context == "1M")
+    let report = try OpenRouterReportService.report(modelData: modelData([free(), free("other/a")]), html: html, previous: nil, now: reportDate)
+    #expect(report.snapshot.top5 == rows)
+    #expect(report.snapshot.rankingParserVersion == 3)
+    #expect(report.markdown.contains("https://openrouter.ai/vendor/model-1:free"))
+    #expect(!report.markdown.contains("数据源降级"))
+}
+
+@Test func dailyWeeklyEmbeddedParserRejectsWrongLanesIncompleteRowsAndInvalidRoutes() throws {
+    #expect(OpenRouterReportService.parseTop5(try discoverFlight([discoverLane("aliases")])).isEmpty)
+    #expect(OpenRouterReportService.parseTop5(try discoverFlight([discoverLane(), discoverLane()])).isEmpty)
+    var lane = discoverLane()
+    var models = try #require(lane["models"] as? [[String: Any]])
+    lane["models"] = Array(models.prefix(4))
+    #expect(OpenRouterReportService.parseTop5(try discoverFlight([lane])).isEmpty)
+    for route in ["//evil.example/model", "/../model", "/vendor/model?redirect=evil", "https://evil.example/model"] {
+        var invalid = models; invalid[0]["href"] = route; lane["models"] = invalid
+        #expect(OpenRouterReportService.parseTop5(try discoverFlight([lane])).isEmpty)
+    }
+    var duplicate = models; duplicate[1]["href"] = duplicate[0]["href"]; lane["models"] = duplicate
+    #expect(OpenRouterReportService.parseTop5(try discoverFlight([lane])).isEmpty)
+    models[0]["stats"] = [["label": "Family tokens", "value": "99T"], ["label": "Context", "value": "1M"]]
+    lane["models"] = models
+    #expect(OpenRouterReportService.parseTop5(try discoverFlight([lane])).isEmpty)
+    #expect(OpenRouterReportService.parseTop5("<script>self.__next_f.push(notJSON)</script>" + weeklyHTML()).count == 5)
+}
+
 @Test func dailyUnverifiedLegacyAliasRankingIsNotUsedForChanges() throws {
     var previous = try sampleReport(day: reportDate.addingTimeInterval(-86400)).snapshot
     previous.rankingParserVersion = nil
